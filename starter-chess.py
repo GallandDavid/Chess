@@ -28,7 +28,8 @@ def deroulementRandom(b):
 
 #------ Depth methode -------#
 
-nb_noeuds = 0
+global nb_noeuds
+noeuds = 1
     
 def deroulementExhaustif(b,p, nb_noeud):
     
@@ -62,25 +63,34 @@ def maxProfondeur(b):
 
 
 #------ Eval -------#
-
+pion = { 56:0, 57:0, 58:0, 59:0, 60:0, 61:0, 62:0, 63:0,
+ 48:50, 49:50, 50:50, 51:50, 52:50, 53:50, 54:50, 55:50,
+ 40:10, 41:10, 42:20, 43:30, 44:30, 45:20, 46:10, 47:10,
+  32:5, 33:5, 34:10, 35:25, 36:25, 37:10, 38:5, 39:5,
+  24:0, 25:0, 26:0, 27:20, 28:20, 29:0, 30:0, 31:0,
+  16:5, 17:-5, 18:-10, 19:0, 20:0, 21:-10, 22:-5, 23:5,
+  8:5, 9:10, 10:10, 11:-20, 12:-20, 13:10, 14:10, 15:5,
+  0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0}
 
 def eval(board):
-    valeurs = {'K':200, 
-               'Q':9, 
-               'R':5, 
-               'B':3, 
-               'N':3, 
-               'P':1,
+    valeurs = {'K':20000, 
+               'Q':900, 
+               'R':500, 
+               'B':330, 
+               'N':320, 
+               'P':100,
                '.':0}
     
     score = 0
     for k,p in board.piece_map().items():
         if(p.symbol() == p.symbol().upper()):
             score += valeurs[p.symbol()]
+            
             score +=  (k//8) * 0.2
         else:
             score -= valeurs[p.symbol().upper()]
-            score -= 1 - ((k//8) * 0.2)
+            if(p.symbol() == 'p'):
+            score -= ((k//8) * 0.2)
     return score
 
 
@@ -99,15 +109,17 @@ def eval(board):
 def MaxMin(b,p):
     if b.is_game_over():
         if(b.result() == "1-0"):
-            return 1000
+            return 100000
         elif(b.result() == "0-1"):
-            return -1000
+            return -100000
         return 0
     if p == 0:
         return eval(b)
-    max = -10000
+    max = -1000000
     for m in b.generate_legal_moves():
         b.push(m)
+        global noeuds
+        noeuds += 1
         v = MinMax(b,p-1)
         if(v > max):
             max = v
@@ -117,15 +129,17 @@ def MaxMin(b,p):
 def MinMax(b,p):
     if b.is_game_over():
         if(b.result() == "1-0"):
-            return 1000
+            return -100000
         elif(b.result() == "0-1"):
-            return -1000
+            return 100000
         return 0
     if p == 0:
         return eval(b)
-    min = 10000
+    min = 1000000
     for m in b.generate_legal_moves():
         b.push(m)
+        global noeuds
+        noeuds += 1
         v = MaxMin(b,p-1)
         if(v < min):
             min = v
@@ -134,19 +148,22 @@ def MinMax(b,p):
 
 def init(b,p,player):
     coup = 0
+    global noeuds
     if(player):
-        value = -100000
+        value = -10000000
         for m in b.generate_legal_moves():
             b.push(m)
+            noeuds += 1
             v = MaxMin(b,p-1)
             if(v > value):
                 value = v
                 coup = m
             b.pop()
     else:
-        value = 100000
+        value = 10000000
         for m in b.generate_legal_moves():
             b.push(m)
+            noeuds += 1
             v = MinMax(b,p-1)
             if(v < value):
                 value = v
@@ -155,8 +172,6 @@ def init(b,p,player):
     return coup   
 
 def playGame(b,p,player):
-    print("----------")
-    print(b)
     if(player):
         b.push(init(b,p,player))
     else:
@@ -183,14 +198,16 @@ def playGame(b,p,player):
 def MaxValue(board, a, b, p):
     if board.is_game_over():
         if(board.result() == "1-0"):
-            return 1000
+            return 100000
         elif(board.result() == "0-1"):
-            return -1000
+            return -100000
         return 0
     if p == 0:
         return eval(board)
     for m in board.generate_legal_moves():
         board.push(m)
+        global noeuds
+        noeuds += 1
         a = max(MinValue(board, a, b, p-1), a)
         if(a >= b):
             board.pop()
@@ -203,14 +220,16 @@ def MaxValue(board, a, b, p):
 def MinValue(board, a, b, p):
     if board.is_game_over():
         if(board.result() == "1-0"):
-            return 1000
+            return -100000
         elif(board.result() == "0-1"):
-            return -1000
+            return 100000
         return 0
     if p == 0:
         return eval(board)
     for m in board.generate_legal_moves():
         board.push(m)
+        global noeuds 
+        noeuds += 1
         b = min(MaxValue(board, a, b, p-1), b)
         if(a >= b):
             board.pop()
@@ -218,8 +237,8 @@ def MinValue(board, a, b, p):
         board.pop()
     return b
 
-def initValue(board, p):
-    coup = 0
+def initValue(board, p, player):
+    coup = randomMove(board)
 
     if(player):
         value = -100000
@@ -227,37 +246,48 @@ def initValue(board, p):
         value = 100000
     for m in board.generate_legal_moves():
         board.push(m)
+        global noeuds 
+        noeuds += 1
         if(player):
-            tmp = MinValue(board, -100000, 100000, p-1)
-            if(tmp > value):
+            tmp = MaxValue(board, -1000000, 1000000, p-1)
+            if(tmp >= value):
                 value = tmp
                 coup = m
         else:
-            tmp = MaxValue(board, -100000, 100000, p-1)
-            if(tmp > value):
+            tmp = MinValue(board, -1000000, 1000000, p-1)
+            if(tmp <= value):
                 value = tmp
                 coup = m
         board.pop()
     return coup
 
 
-def playAB(b, p, player):
-    print("----------")
-    print(b)
+def playAB(b, p_a, p_e, player):
+    #print("----------")
+    #print(b)
     if(player):
-        b.push(init(b,p,player))
+        b.push(initValue(b,p_a,player))
     else:
-        b.push(init(b,p - 1,player))
+        b.push(initValue(b,p_e,player))
     if b.is_game_over():
         return b
     if(player):
         player = False
     else:
         player = True
-    playGame(b,p,player)
+    playAB(b, p_a, p_e, player)
 
 #------ Fin AlphaBeta methode -------#
 
+
+
+#------ MinMax vs AlphaBeta -------#
+
+
+def duel():
+    return
+
+#------ Fin MinMax vs AlphaBeta -------#
 
 
 
@@ -266,12 +296,18 @@ def playAB(b, p, player):
 
 
 board = chess.Board()
-
+print(board)
+#board.push(randomMove(board))
+for k,p in board.piece_map().items():
+    print(k)
+print(board)
 #deroulementRandom(board)
 #print( maxProfondeur(board))
 #deroulementExhaustif(board,2)
 #playGame(board,3,True)
-playAB(board, 3, True)
-print("Resultat : " + board.result())
+#playAB(board, 1, 3, False)
+playAB(board, 3, 1, True)
+print("Nb noeuds : " + str(noeuds) + "\n")
+print("Resultat : " + board.result() + "\n")
 
 #------ Fin Main -------#
