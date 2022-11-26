@@ -54,9 +54,14 @@ def maxProfondeur(b):
     return p_max
 
 
+
 #------ Fin Depth methode -------#
 
-#------ MinMax methode -------#
+
+
+
+
+#------ Eval -------#
 
 
 def eval(board):
@@ -77,6 +82,19 @@ def eval(board):
             score -= valeurs[p.symbol().upper()]
             score -= 1 - ((k//8) * 0.2)
     return score
+
+
+#------ Fin Eval -------#
+
+
+
+
+
+#------ MinMax methode -------#
+
+
+
+
 
 def MaxMin(b,p):
     if b.is_game_over():
@@ -151,10 +169,100 @@ def playGame(b,p,player):
     else:
         player = True
     playGame(b,p,player)
-    
+
 
 
 #------ Fin MinMax methode -------#
+
+
+
+
+#------ AlphaBeta methode -------#
+
+
+def MaxValue(board, a, b, p):
+    if board.is_game_over():
+        if(board.result() == "1-0"):
+            return 1000
+        elif(board.result() == "0-1"):
+            return -1000
+        return 0
+    if p == 0:
+        return eval(board)
+    for m in board.generate_legal_moves():
+        board.push(m)
+        a = max(MinValue(board, a, b, p-1), a)
+        if(a >= b):
+            board.pop()
+            return b
+        board.pop()
+    return a
+
+
+
+def MinValue(board, a, b, p):
+    if board.is_game_over():
+        if(board.result() == "1-0"):
+            return 1000
+        elif(board.result() == "0-1"):
+            return -1000
+        return 0
+    if p == 0:
+        return eval(board)
+    for m in board.generate_legal_moves():
+        board.push(m)
+        b = min(MaxValue(board, a, b, p-1), b)
+        if(a >= b):
+            board.pop()
+            return a
+        board.pop()
+    return b
+
+def initValue(board, p):
+    coup = 0
+
+    if(player):
+        value = -100000
+    else:
+        value = 100000
+    for m in board.generate_legal_moves():
+        board.push(m)
+        if(player):
+            tmp = MinValue(board, -100000, 100000, p-1)
+            if(tmp > value):
+                value = tmp
+                coup = m
+        else:
+            tmp = MaxValue(board, -100000, 100000, p-1)
+            if(tmp > value):
+                value = tmp
+                coup = m
+        board.pop()
+    return coup
+
+
+def playAB(b, p, player):
+    print("----------")
+    print(b)
+    if(player):
+        b.push(init(b,p,player))
+    else:
+        b.push(init(b,p - 1,player))
+    if b.is_game_over():
+        return b
+    if(player):
+        player = False
+    else:
+        player = True
+    playGame(b,p,player)
+
+#------ Fin AlphaBeta methode -------#
+
+
+
+
+#------ Main -------#
+
 
 
 board = chess.Board()
@@ -162,7 +270,8 @@ board = chess.Board()
 #deroulementRandom(board)
 #print( maxProfondeur(board))
 #deroulementExhaustif(board,2)
-
-playGame(board,3,True)
+#playGame(board,3,True)
+playAB(board, 3, True)
 print("Resultat : " + board.result())
 
+#------ Fin Main -------#
