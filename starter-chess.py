@@ -4,6 +4,9 @@ import chess
 import random
 from random import choice
 
+import sys
+sys.setrecursionlimit(10000)
+
 
 #------ Random methode -------#
 
@@ -154,7 +157,7 @@ def eval(board, player):
             if p == 'K':
                 score += pst_king[i]
             if p == 'Q':
-                score += pst_queen[i] 
+                score += pst_queen[i]
         else:
             score += valeurs[p.symbol().upper()]
             if p == 'p':
@@ -402,8 +405,8 @@ def initValue(board, p, player):
 
 
 def playAB(b, p_a, p_e, player):
-    print("----------")
-    print(b)
+    #print("----------")
+    #print(b)
     if(player):
         b.push(initValue(b,p_a,player))
     else:
@@ -464,10 +467,133 @@ def makeRound(b,p_a,p_e,player):
 #------ MinMax vs AlphaBeta -------#
 
 
-def duel():
-    return
+def playDuel(b,p_a,p_e,player):
+    #print("----------")
+    #print(b)
+    if(player):
+        b.push(init(b,p_a,player))
+    else:
+        b.push(initValue(b,p_e,player))
+    if b.is_game_over():
+        return b
+    if(player):
+        player = False
+    else:
+        player = True
+    playDuel(b, p_a, p_e, player)
+
+def duel(b,p_a,p_e,player,rounde):
+    times = []
+    score = [0,0]
+    noeud = []
+    global noeuds
+    r = rounde
+    while(r > 0):
+        noeuds = 1
+        b.reset()
+        time_start = time.time()
+        playDuel(b,p_a,p_e,player)
+        time_end = time.time()
+        print("time : " + str(time_end - time_start))
+        times.append(time_end - time_start)
+        if(b.result() == "1-0"):
+            score[0] += 1
+        elif(b.result() == "0-1"):
+            score[1] += 1
+        else:
+            score[0] += 0.5
+            score[1] += 0.5
+        print("score : " + str(score[0]) + "-" + str(score[1]))
+        noeud.append(noeuds)
+        print("Nb noeuds : " + str(noeuds))
+        r -= 1
+        player = not player
+    temps = 0
+    node = 0
+    for time_e in times:
+        temps += time_e
+    temps = temps / len(times)
+    for ne in noeud:
+        node += ne
+    node = node / len(noeud)
+    print("temps moyen : " + str(temps))
+    print("nombre de noeuds moyen : " + str(node))
+    print("pourcentage de chance de victoire : " + str(score[0] / rounde *100))
+
 
 #------ Fin MinMax vs AlphaBeta -------#
+
+
+
+#------ Simulation Joueur VS Machine -------#
+
+def prntinfo():
+    print(" press ←↑→↓ for move selection")
+    print("press enter for select piece or place piece")
+    print(" press back for unselect piece")
+    print(" press q for quit")
+
+def reverse(s):
+    str = ""
+    for i in s:
+        str = i + str
+    return str
+
+def printgame(b,selector):
+    print("----------")
+    ligne = ""
+    prev_k = 64
+    tmp = ""
+    for k,p in board.piece_map().items():
+        print(k)
+        if(k < (prev_k - 1)):
+            for i in range ( prev_k-1,k, -1):
+                if((i+1) % 8 == 0):
+                    ligne = ligne + reverse(tmp) + '\n' + '\n'
+                    tmp = ""
+                if(i == selector):
+                    tmp = tmp +  '}'
+                    tmp = tmp + '.'
+                    tmp = tmp + '{'
+                else:
+                    tmp = tmp + ' '
+                    tmp = tmp + '.'
+                    tmp = tmp + ' '
+        if((k+1) % 8 == 0):
+            ligne = ligne + reverse(tmp) + '\n' + '\n'
+            tmp = ""
+        if(k == selector):
+            tmp = tmp +  '}'
+            tmp = tmp + p.symbol()
+            tmp = tmp + '{'
+        else:
+            tmp = tmp + ' '
+            tmp = tmp + p.symbol()
+            tmp = tmp + ' '
+        prev_k = k
+    ligne = ligne + reverse(tmp) + '\n' + '\n'
+    print(ligne)
+    return
+
+global selected
+
+def init_game():
+    global selected
+    selected = 27
+    return
+
+def main():
+    board = chess.Board()
+    loop(board)
+    return
+
+def loop(board):
+    printgame(board)
+    printinfo()
+    input()
+    return
+
+#------ Fin MinMax vs SimAlphaBetaulation Joueur VS Machine -------#
 
 
 
@@ -476,19 +602,22 @@ def duel():
 
 
 board = chess.Board()
-#print(board)
-#board.push(randomMove(board))
-#for k,p in board.piece_map().items():
-#    print(k)
-#print(board)
+print(board)
+board.push(randomMove(board))
+for k,p in board.piece_map().items():
+    print(k)
+print(board)
 #deroulementRandom(board)
 #print( maxProfondeur(board))
 #deroulementExhaustif(board,2)
 #playGame(board,2,1,True)
-roundMatch(board,10,3,2,True)
+#roundMatch(board,10,3,2,True)
 #playAB(board, 1, 3, False)
 #playAB(board, 3, 1, True)
-print("Nb noeuds : " + str(noeuds) + "\n")
-print("Resultat : " + board.result() + "\n")
+printgame(board,0)
+#duel(board,1,1,True,100)
+
+#print("Nb noeuds : " + str(noeuds) + "\n")
+#print("Resultat : " + board.result() + "\n")
 
 #------ Fin Main -------#
