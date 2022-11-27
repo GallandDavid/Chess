@@ -527,11 +527,11 @@ def duel(b,p_a,p_e,player,rounde):
 
 #------ Simulation Joueur VS Machine -------#
 
-def prntinfo():
-    print(" press ←↑→↓ for move selection")
+def printinfo():
+    print(" press zqsd for move selection")
     print("press enter for select piece or place piece")
     print(" press back for unselect piece")
-    print(" press q for quit")
+    print(" press e for exit")
 
 def reverse(s):
     str = ""
@@ -539,19 +539,31 @@ def reverse(s):
         str = i + str
     return str
 
-def printgame(b,selector):
+def printgame(b,cursor,selected,area):
     print("----------")
     ligne = ""
     prev_k = 64
     tmp = ""
     for k,p in board.piece_map().items():
-        print(k)
         if(k < (prev_k - 1)):
             for i in range ( prev_k-1,k, -1):
-                if((i+1) % 8 == 0):
-                    ligne = ligne + reverse(tmp) + '\n' + '\n'
-                    tmp = ""
-                if(i == selector):
+                if(selected):
+                    if((i+1) % 8 == 0):
+                        ligne = ligne + reverse(tmp) + '\n'
+                        tmp = ""
+                        if( area // 8 ==  i // 8):
+                            for j in range (0, 8):
+                                if(j == (area % 8)):
+                                    tmp += ' ' + '-' + ' '
+                                else:
+                                    tmp += ' ' + ' ' + ' '
+                        ligne = ligne + tmp + '\n'
+                        tmp = ""
+                else:
+                    if((i+1) % 8 == 0):
+                        ligne = ligne + reverse(tmp) + '\n' + '\n'
+                        tmp = ""
+                if(i == cursor):
                     tmp = tmp +  '}'
                     tmp = tmp + '.'
                     tmp = tmp + '{'
@@ -560,9 +572,23 @@ def printgame(b,selector):
                     tmp = tmp + '.'
                     tmp = tmp + ' '
         if((k+1) % 8 == 0):
-            ligne = ligne + reverse(tmp) + '\n' + '\n'
-            tmp = ""
-        if(k == selector):
+            if(selected):
+                if((k+1) % 8 == 0):
+                    ligne = ligne + reverse(tmp) + '\n'
+                    tmp = ""
+                    if( area // 8 ==  k // 8):
+                        for j in range (0, 8):
+                            if(j == (area % 8)):
+                                tmp += ' ' + '-' + ' '
+                            else:
+                                tmp += ' ' + ' ' + ' '
+                    ligne = ligne + tmp + '\n'
+                    tmp = ""
+            else:
+                if((k+1) % 8 == 0):
+                    ligne = ligne + reverse(tmp) + '\n' + '\n'
+                    tmp = ""
+        if(k == cursor):
             tmp = tmp +  '}'
             tmp = tmp + p.symbol()
             tmp = tmp + '{'
@@ -575,12 +601,18 @@ def printgame(b,selector):
     print(ligne)
     return
 
+global cursor
 global selected
+global area
 
 def init_game():
     global selected
-    selected = 27
-    return
+    global cursor
+    global area 
+    area = 27
+    selected = True
+    cursor = 27
+    main()
 
 def main():
     board = chess.Board()
@@ -588,9 +620,74 @@ def main():
     return
 
 def loop(board):
-    printgame(board)
+    global cursor
+    global selected
+    global area
+    printgame(board, cursor, selected, area)
     printinfo()
-    input()
+    string = input()
+
+    if(string[0] == 'z'):
+        if(selected):
+            if((area // 8) == 7):
+                area = area % 8
+            else:
+                area += 8   
+        else:
+            if((cursor // 8) == 7):
+                cursor = cursor % 8
+            else:
+                cursor += 8 
+        
+    if(string[0] == 'q'):
+        if(selected):
+            if((area) % 8 == 0):
+                area += 7
+            else:
+                area -= 1 
+        else: 
+            if((cursor) % 8 == 0):
+                cursor += 7
+            else:
+                cursor -= 1 
+
+    if(string[0] == 's'):
+        if(selected):
+            if((area // 8) == 0):
+                area = 56 + (area % 8)
+            else:
+                area -= 8 
+
+        else:
+            if((cursor // 8) == 0):
+                cursor = 56 + (cursor % 8)
+            else:
+                cursor -= 8 
+
+    if(string[0] == 'd'):
+        if(selected):
+            if(area % 8 == 7):
+                area -= 7
+            else:
+                area += 1 
+        else:    
+            if(cursor % 8 == 7):
+                cursor -= 7
+            else:
+                cursor += 1 
+
+    if(string[0] == ' '):
+        print("selected : " + str(selected))
+        if(selected):
+            selected = not selected
+        else:
+            area = cursor
+            selected = not selected
+    
+    if(string[0] == 'e'):
+        return
+
+    loop(board)
     return
 
 #------ Fin MinMax vs SimAlphaBetaulation Joueur VS Machine -------#
@@ -602,11 +699,11 @@ def loop(board):
 
 
 board = chess.Board()
-print(board)
-board.push(randomMove(board))
-for k,p in board.piece_map().items():
-    print(k)
-print(board)
+#print(board)
+#board.push(randomMove(board))
+#for k,p in board.piece_map().items():
+#    print(k)
+#print(board)
 #deroulementRandom(board)
 #print( maxProfondeur(board))
 #deroulementExhaustif(board,2)
@@ -614,10 +711,12 @@ print(board)
 #roundMatch(board,10,3,2,True)
 #playAB(board, 1, 3, False)
 #playAB(board, 3, 1, True)
-printgame(board,0)
+
 #duel(board,1,1,True,100)
 
 #print("Nb noeuds : " + str(noeuds) + "\n")
 #print("Resultat : " + board.result() + "\n")
+
+init_game()
 
 #------ Fin Main -------#
