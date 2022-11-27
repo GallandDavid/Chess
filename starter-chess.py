@@ -551,6 +551,12 @@ def printgame(b,cursor,selected,area):
                     if((i+1) % 8 == 0):
                         ligne = ligne + reverse(tmp) + '\n'
                         tmp = ""
+                        if( area // 8 == (i // 8) + 1):
+                            for j in range (0, 8):
+                                if(j == (area % 8)):
+                                    tmp += ' ' + '-' + ' '
+                                else:
+                                    tmp += ' ' + ' ' + ' '
                         if( area // 8 ==  i // 8):
                             for j in range (0, 8):
                                 if(j == (area % 8)):
@@ -567,6 +573,10 @@ def printgame(b,cursor,selected,area):
                     tmp = tmp +  '}'
                     tmp = tmp + '.'
                     tmp = tmp + '{'
+                elif(i == area):
+                    tmp = tmp +  '|'
+                    tmp = tmp + p.symbol()
+                    tmp = tmp + '|'
                 else:
                     tmp = tmp + ' '
                     tmp = tmp + '.'
@@ -576,6 +586,12 @@ def printgame(b,cursor,selected,area):
                 if((k+1) % 8 == 0):
                     ligne = ligne + reverse(tmp) + '\n'
                     tmp = ""
+                    if( area // 8 == (k // 8) + 1):
+                            for j in range (0, 8):
+                                if(j == (area % 8)):
+                                    tmp += ' ' + '-' + ' '
+                                else:
+                                    tmp += ' ' + ' ' + ' '
                     if( area // 8 ==  k // 8):
                         for j in range (0, 8):
                             if(j == (area % 8)):
@@ -592,12 +608,26 @@ def printgame(b,cursor,selected,area):
             tmp = tmp +  '}'
             tmp = tmp + p.symbol()
             tmp = tmp + '{'
+        elif(k == area):
+            tmp = tmp +  '|'
+            tmp = tmp + p.symbol()
+            tmp = tmp + '|'
         else:
             tmp = tmp + ' '
             tmp = tmp + p.symbol()
             tmp = tmp + ' '
         prev_k = k
-    ligne = ligne + reverse(tmp) + '\n' + '\n'
+    ligne = ligne + reverse(tmp) + '\n'
+    tmp = ""
+    if(selected):
+        if( area // 8 == (k // 8)):
+                for j in range (0, 8):
+                    if(j == (area % 8)):
+                        tmp += ' ' + '-' + ' '
+                    else:
+                        tmp += ' ' + ' ' + ' '
+        ligne = ligne + tmp + '\n'
+        tmp = ""
     print(ligne)
     return
 
@@ -625,67 +655,67 @@ def loop(board):
     global area
     printgame(board, cursor, selected, area)
     printinfo()
-    string = input("Choose action")
+    string = input("Choose action :\n")
+    if len(string) > 0:
+        if(string[0] == 'z'):
+            if(selected):
+                if((area // 8) == 7):
+                    area = area % 8
+                else:
+                    area += 8   
+            else:
+                if((cursor // 8) == 7):
+                    cursor = cursor % 8
+                else:
+                    cursor += 8 
+            
+        if(string[0] == 'q'):
+            if(selected):
+                if((area) % 8 == 0):
+                    area += 7
+                else:
+                    area -= 1 
+            else: 
+                if((cursor) % 8 == 0):
+                    cursor += 7
+                else:
+                    cursor -= 1 
 
-    if(string[0] == 'z'):
-        if(selected):
-            if((area // 8) == 7):
-                area = area % 8
+        if(string[0] == 's'):
+            if(selected):
+                if((area // 8) == 0):
+                    area = 56 + (area % 8)
+                else:
+                    area -= 8 
+
             else:
-                area += 8   
-        else:
-            if((cursor // 8) == 7):
-                cursor = cursor % 8
+                if((cursor // 8) == 0):
+                    cursor = 56 + (cursor % 8)
+                else:
+                    cursor -= 8 
+
+        if(string[0] == 'd'):
+            if(selected):
+                if(area % 8 == 7):
+                    area -= 7
+                else:
+                    area += 1 
+            else:    
+                if(cursor % 8 == 7):
+                    cursor -= 7
+                else:
+                    cursor += 1 
+
+        if(string[0] == ' '):
+            print("selected : " + str(selected))
+            if(selected):
+                selected = not selected
             else:
-                cursor += 8 
+                area = cursor
+                selected = not selected
         
-    if(string[0] == 'q'):
-        if(selected):
-            if((area) % 8 == 0):
-                area += 7
-            else:
-                area -= 1 
-        else: 
-            if((cursor) % 8 == 0):
-                cursor += 7
-            else:
-                cursor -= 1 
-
-    if(string[0] == 's'):
-        if(selected):
-            if((area // 8) == 0):
-                area = 56 + (area % 8)
-            else:
-                area -= 8 
-
-        else:
-            if((cursor // 8) == 0):
-                cursor = 56 + (cursor % 8)
-            else:
-                cursor -= 8 
-
-    if(string[0] == 'd'):
-        if(selected):
-            if(area % 8 == 7):
-                area -= 7
-            else:
-                area += 1 
-        else:    
-            if(cursor % 8 == 7):
-                cursor -= 7
-            else:
-                cursor += 1 
-
-    if(string[0] == ' '):
-        print("selected : " + str(selected))
-        if(selected):
-            selected = not selected
-        else:
-            area = cursor
-            selected = not selected
-    
-    if(string[0] == 'e'):
-        return
+        if(string[0] == 'e'):
+            return
 
     loop(board)
     return
