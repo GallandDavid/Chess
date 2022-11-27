@@ -529,8 +529,8 @@ def duel(b,p_a,p_e,player,rounde):
 
 def printinfo():
     print(" press zqsd for move selection")
-    print("press enter for select piece or place piece")
-    print(" press back for unselect piece")
+    print("press space for select piece or place piece")
+    print(" press ? for unselect piece")
     print(" press e for exit")
 
 def reverse(s):
@@ -625,7 +625,7 @@ def loop(board):
     global area
     printgame(board, cursor, selected, area)
     printinfo()
-    string = input()
+    string = input("Choose action")
 
     if(string[0] == 'z'):
         if(selected):
