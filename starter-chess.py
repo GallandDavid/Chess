@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import time
 import chess
+import random
 from random import choice
 
 
@@ -63,16 +64,73 @@ def maxProfondeur(b):
 
 
 #------ Eval -------#
-pion = { 56:0, 57:0, 58:0, 59:0, 60:0, 61:0, 62:0, 63:0,
- 48:50, 49:50, 50:50, 51:50, 52:50, 53:50, 54:50, 55:50,
- 40:10, 41:10, 42:20, 43:30, 44:30, 45:20, 46:10, 47:10,
-  32:5, 33:5, 34:10, 35:25, 36:25, 37:10, 38:5, 39:5,
-  24:0, 25:0, 26:0, 27:20, 28:20, 29:0, 30:0, 31:0,
-  16:5, 17:-5, 18:-10, 19:0, 20:0, 21:-10, 22:-5, 23:5,
-  8:5, 9:10, 10:10, 11:-20, 12:-20, 13:10, 14:10, 15:5,
-  0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0}
+pst_pawn = {
+  0, 0, 0, 0, 0, 0, 0, 0,
+ 50, 50, 50, 50, 50, 50, 50, 50,
+ 10, 10, 20, 30, 30, 20, 10, 10,
+  5, 5, 10, 25, 25, 10, 5, 5,
+  0, 0, 0, 20, 20, 0, 0, 0,
+  5, -5, -10, 0, 0, -10, -5, 5,
+  5, 10, 10,-20,-20, 10, 10, 5,
+  0, 0, 0, 0, 0, 0, 0, 0
+}
 
-def eval(board):
+pst_knight = {
+  -50,-40,-30,-30,-30,-30,-40,-50,
+ -40,-20, 0, 0, 0, 0,-20,-40,
+ -30, 0, 10, 15, 15, 10, 0, -30,
+ -30, 5, 15, 20, 20, 15, 5, -30,
+ -30, 0, 15, 20, 20, 15, 0, -30,
+ -30, 5, 10, 15, 15, 10, 5, -30,
+ -40,-20, 0, 5, 5, 0,-20,-40,
+ -50,-40,-30,-30,-30,-30,-40,-50
+}
+
+pst_bishop = {
+  -20,-10,-10,-10,-10,-10,-10,-20,
+ -10, 0, 0, 0, 0, 0, 0,-10,
+ -10, 0, 5, 10, 10, 5, 0, -10,
+ -10, 5, 5, 10, 10, 5, 5, -10,
+ -10, 0, 10, 10, 10, 10, 0, -10,
+ -10, 10, 10, 10, 10, 10, 10, -10,
+ -10, 5, 0, 0, 0, 0, 5, -10,
+ -20,-10,-10,-10,-10,-10,-10,-20,
+}
+
+pst_rook = {
+  0, 0, 0, 0, 0, 0, 0, 0,
+   5, 10, 10, 10, 10, 10, 10, 5,
+  -5, 0, 0, 0, 0, 0, 0, -5,
+  -5, 0, 0, 0, 0, 0, 0, -5,
+  -5, 0, 0, 0, 0, 0, 0, -5,
+  -5, 0, 0, 0, 0, 0, 0, -5,
+  -5, 0, 0, 0, 0, 0, 0, -5,
+   0, 0, 0, 5, 5, 0, 0, 0
+}
+
+pst_queen = {
+ -20,-10,-10, -5, -5,-10,-10,-20,
+ -10, 0, 0, 0, 0, 0, 0,-10,
+ -10, 0, 5, 5, 5, 5, 0, -10,
+  -5, 0, 5, 5, 5, 5, 0, -5,
+   0, 0, 5, 5, 5, 5, 0, -5,
+ -10, 5, 5, 5, 5, 5, 0, -10,
+ -10, 0, 5, 0, 0, 0, 0, -10,
+ -20,-10,-10, -5, -5,-10,-10,-20
+}
+
+pst_king = {
+  -30,-40,-40,-50,-50,-40,-40,-30,
+ -30,-40,-40,-50,-50,-40,-40,-30,
+ -30,-40,-40,-50,-50,-40,-40,-30,
+ -30,-40,-40,-50,-50,-40,-40,-30,
+ -20,-30,-30,-40,-40,-30,-30,-20,
+ -10,-20,-20,-20,-20,-20,-20,-10,
+  20, 20, 0, 0, 0, 0, 20, 20,
+  20, 30, 10, 0, 0, 10, 30, 20
+}
+
+def eval(board, player):
     valeurs = {'K':20000, 
                'Q':900, 
                'R':500, 
@@ -85,28 +143,43 @@ def eval(board):
     for k,p in board.piece_map().items():
         if(p.symbol() == p.symbol().upper()):
             score += valeurs[p.symbol()]
-            
-            score +=  (k//8) * 0.2
+            if p == 'P':
+                score += pst_pawn[i]
+            if p == 'N':
+                score += pst_knight[i]
+            if p == 'B':
+                score += pst_bishop[i]
+            if p == 'R':
+                score += pst_rook[i]
+            if p == 'K':
+                score += pst_king[i]
+            if p == 'Q':
+                score += pst_queen[i] 
         else:
-            score -= valeurs[p.symbol().upper()]
-            if(p.symbol() == 'p'):
-            score -= ((k//8) * 0.2)
-    return score
+            score += valeurs[p.symbol().upper()]
+            if p == 'p':
+                score += pst_pawn[i]
+            if p == 'n':
+                score += pst_knight[i]
+            if p == 'b':
+                score += pst_bishop[i]
+            if p == 'r':
+                score += pst_rook[i]
+            if p == 'q':
+                score += pst_queen[i]
+    if(player):
+        return score
+    return -score
 
 
 #------ Fin Eval -------#
 
 
 
-
-
 #------ MinMax methode -------#
 
 
-
-
-
-def MaxMin(b,p):
+def MaxMin(b,p,player):
     if b.is_game_over():
         if(b.result() == "1-0"):
             return 100000
@@ -114,19 +187,19 @@ def MaxMin(b,p):
             return -100000
         return 0
     if p == 0:
-        return eval(b)
-    max = -1000000
+        return eval(b,player)
+    maxm = -1000000
     for m in b.generate_legal_moves():
         b.push(m)
         global noeuds
         noeuds += 1
-        v = MinMax(b,p-1)
-        if(v > max):
-            max = v
+        v = MinMax(b,p-1,player)
+        if(v > maxm):
+            maxm = v
         b.pop()
-    return max
+    return maxm
         
-def MinMax(b,p):
+def MinMax(b,p,player):
     if b.is_game_over():
         if(b.result() == "1-0"):
             return -100000
@@ -134,56 +207,114 @@ def MinMax(b,p):
             return 100000
         return 0
     if p == 0:
-        return eval(b)
-    min = 1000000
+        return eval(b,player)
+    minm = 1000000
     for m in b.generate_legal_moves():
         b.push(m)
         global noeuds
         noeuds += 1
-        v = MaxMin(b,p-1)
-        if(v < min):
-            min = v
+        v = MaxMin(b,p-1,player)
+        if(v < minm):
+            minm = v
         b.pop()
-    return min
+    return minm
 
 def init(b,p,player):
+    if b.is_game_over():
+        if(b.result() == "1-0"):
+            return -100000
+        elif(b.result() == "0-1"):
+            return 100000
+        return 0
+    if p == 0:
+        return eval(b,player)
     coup = 0
     global noeuds
+    list_best_coup = []
     if(player):
         value = -10000000
+
         for m in b.generate_legal_moves():
             b.push(m)
             noeuds += 1
-            v = MaxMin(b,p-1)
+            v = MaxMin(b,p-1,player)
             if(v > value):
+                list_best_coup = [m]
                 value = v
                 coup = m
+            elif(v == value):
+                list_best_coup.append(m)
             b.pop()
     else:
         value = 10000000
         for m in b.generate_legal_moves():
             b.push(m)
             noeuds += 1
-            v = MinMax(b,p-1)
+            v = MinMax(b,p-1,player)
             if(v < value):
+                list_best_coup = [m]
                 value = v
                 coup = m
+            elif(v == value):
+                list_best_coup.append(m)
             b.pop()
+    if(len(list_best_coup) > 1):
+        return list_best_coup[random.randint(0, len(list_best_coup) - 1)]
     return coup   
 
-def playGame(b,p,player):
+def playGame(b,p_a,p_e,player):
+    #print("----------")
+    #print(b)
     if(player):
-        b.push(init(b,p,player))
+        b.push(init(b,p_a,player))
     else:
-        b.push(init(b,p,player))
-
+        b.push(init(b,p_e,player))
     if b.is_game_over():
         return b
     if(player):
         player = False
     else:
         player = True
-    playGame(b,p,player)
+    playGame(b,p_a,p_e,player)
+
+def roundMatch(b,rounde,p_a,p_e,player):
+    times = []
+    score = [0,0]
+    noeud = []
+    global noeuds
+    r = rounde
+    while(r >= 0):
+        noeuds = 1
+        b.reset()
+        time_start = time.time()
+        playGame(b,p_a,p_e,player)
+        time_end = time.time()
+        print("time : " + str(time_end - time_start))
+        times.append(time_end - time_start)
+        if(b.result() == "1-0"):
+            score[0] += 1
+        elif(b.result() == "0-1"):
+            score[1] += 1
+        else:
+            score[0] += 0.5
+            score[1] += 0.5
+        print("score : " + str(score[0]) + "-" + str(score[1]))
+        noeud.append(noeuds)
+        print("Nb noeuds : " + str(noeuds))
+        r -= 1
+    temps = 0
+    node = 0
+    for time_e in times:
+        temps += time_e
+    temps = temps / len(times)
+    for ne in noeud:
+        node += ne
+    node = node / len(noeud)
+    print("temps moyen : " + str(temps))
+    print("nombre de noeuds moyen : " + str(node))
+    print("pourcentage de chance de victoire : " + str(score[0] / (rounde + 1) *100))
+
+
 
 
 
@@ -195,7 +326,7 @@ def playGame(b,p,player):
 #------ AlphaBeta methode -------#
 
 
-def MaxValue(board, a, b, p):
+def MaxValue(board, a, b, p, player):
     if board.is_game_over():
         if(board.result() == "1-0"):
             return 100000
@@ -203,12 +334,12 @@ def MaxValue(board, a, b, p):
             return -100000
         return 0
     if p == 0:
-        return eval(board)
+        return eval(board, player)
     for m in board.generate_legal_moves():
         board.push(m)
         global noeuds
         noeuds += 1
-        a = max(MinValue(board, a, b, p-1), a)
+        a = max(MinValue(board, a, b, p-1,not player), a)
         if(a >= b):
             board.pop()
             return b
@@ -217,7 +348,7 @@ def MaxValue(board, a, b, p):
 
 
 
-def MinValue(board, a, b, p):
+def MinValue(board, a, b, p, player):
     if board.is_game_over():
         if(board.result() == "1-0"):
             return -100000
@@ -225,12 +356,12 @@ def MinValue(board, a, b, p):
             return 100000
         return 0
     if p == 0:
-        return eval(board)
+        return eval(board, player)
     for m in board.generate_legal_moves():
         board.push(m)
         global noeuds 
         noeuds += 1
-        b = min(MaxValue(board, a, b, p-1), b)
+        b = min(MaxValue(board, a, b, p-1, not player), b)
         if(a >= b):
             board.pop()
             return a
@@ -239,23 +370,31 @@ def MinValue(board, a, b, p):
 
 def initValue(board, p, player):
     coup = randomMove(board)
-
+    if board.is_game_over():
+        if(board.result() == "1-0"):
+            return -100000
+        elif(board.result() == "0-1"):
+            return 100000
+        return 0
+    if p == 0:
+        return coup
     if(player):
-        value = -100000
+        value = -1000000
     else:
-        value = 100000
+        value = 1000000
     for m in board.generate_legal_moves():
         board.push(m)
         global noeuds 
         noeuds += 1
+        tmp = 0
         if(player):
-            tmp = MaxValue(board, -1000000, 1000000, p-1)
+            tmp = MinValue(board, -1000000, 1000000, p-1, not player)
             if(tmp >= value):
                 value = tmp
                 coup = m
         else:
-            tmp = MinValue(board, -1000000, 1000000, p-1)
-            if(tmp <= value):
+            tmp = MaxValue(board, -1000000, 1000000, p-1, not player)
+            if(tmp >= value):
                 value = tmp
                 coup = m
         board.pop()
@@ -263,8 +402,8 @@ def initValue(board, p, player):
 
 
 def playAB(b, p_a, p_e, player):
-    #print("----------")
-    #print(b)
+    print("----------")
+    print(b)
     if(player):
         b.push(initValue(b,p_a,player))
     else:
@@ -276,6 +415,47 @@ def playAB(b, p_a, p_e, player):
     else:
         player = True
     playAB(b, p_a, p_e, player)
+
+
+def makeRound(b,p_a,p_e,player):
+    times = []
+    score = [0,0]
+    noeud = []
+    global noeuds
+    r = rounde
+    while(r >= 0):
+        noeuds = 1
+        b.reset()
+        time_start = time.time()
+        playAB(b,p_a,p_e,player)
+        time_end = time.time()
+        print("time : " + str(time_end - time_start))
+        times.append(time_end - time_start)
+        if(b.result() == "1-0"):
+            score[0] += 1
+        elif(b.result() == "0-1"):
+            score[1] += 1
+        else:
+            score[0] += 0.5
+            score[1] += 0.5
+        print("score : " + str(score[0]) + "-" + str(score[1]))
+        noeud.append(noeuds)
+        print("Nb noeuds : " + str(noeuds))
+        r -= 1
+    temps = 0
+    node = 0
+    for time_e in times:
+        temps += time_e
+    temps = temps / len(times)
+    for ne in noeud:
+        node += ne
+    node = node / len(noeud)
+    print("temps moyen : " + str(temps))
+    print("nombre de noeuds moyen : " + str(node))
+    print("pourcentage de chance de victoire : " + str(score[0] / (rounde + 1) *100))
+
+
+
 
 #------ Fin AlphaBeta methode -------#
 
@@ -296,17 +476,18 @@ def duel():
 
 
 board = chess.Board()
-print(board)
+#print(board)
 #board.push(randomMove(board))
-for k,p in board.piece_map().items():
-    print(k)
-print(board)
+#for k,p in board.piece_map().items():
+#    print(k)
+#print(board)
 #deroulementRandom(board)
 #print( maxProfondeur(board))
 #deroulementExhaustif(board,2)
-#playGame(board,3,True)
+#playGame(board,2,1,True)
+roundMatch(board,10,3,2,True)
 #playAB(board, 1, 3, False)
-playAB(board, 3, 1, True)
+#playAB(board, 3, 1, True)
 print("Nb noeuds : " + str(noeuds) + "\n")
 print("Resultat : " + board.result() + "\n")
 
