@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import time
+import os
 import chess
 import random
 from random import choice
@@ -528,10 +529,13 @@ def duel(b,p_a,p_e,player,rounde):
 #------ Simulation Joueur VS Machine -------#
 
 def printinfo():
-    print(" press zqsd for move selection")
-    print("press space for select piece or place piece")
-    print(" press ? for unselect piece")
-    print(" press e for exit")
+    print("Règles d'utilisation :")
+    print(" -\"i\" pour afficher / ne plus afficher les règles d'utilisation")
+    print(" -\"entrer\" pour valider la selection")
+    print(" -\"z, q, s, d\" pour vous déplacer")
+    print(" -\"espace\" pour selectionner une pièce ({ }) ou pour placer la pièce sélectionnée (| |)")
+    print(" -\"r\" pour déselectionner une pièce")
+    print(" -\"e \" pour quitter le jeu")
 
 def reverse(s):
     str = ""
@@ -539,8 +543,8 @@ def reverse(s):
         str = i + str
     return str
 
-def printgame(b,cursor,selected,area):
-    print("----------")
+def printgame(board,cursor,selected,area):
+    print("------------------------")
     ligne = ""
     prev_k = 64
     tmp = ""
@@ -575,7 +579,7 @@ def printgame(b,cursor,selected,area):
                     tmp = tmp + '{'
                 elif(i == area):
                     tmp = tmp +  '|'
-                    tmp = tmp + p.symbol()
+                    tmp = tmp + '.'
                     tmp = tmp + '|'
                 else:
                     tmp = tmp + ' '
@@ -617,8 +621,43 @@ def printgame(b,cursor,selected,area):
             tmp = tmp + p.symbol()
             tmp = tmp + ' '
         prev_k = k
+    if(prev_k != 0):
+        for i in range ( prev_k-1,-1, -1):
+            if(selected):
+                if((i+1) % 8 == 0):
+                    if( area // 8 == (i // 8) + 1):
+                        for j in range (0, 8):
+                            if(j == (area % 8)):
+                                tmp += ' ' + '-' + ' '
+                            else:
+                                tmp += ' ' + ' ' + ' '
+                    if( area // 8 ==  i // 8):
+                        for j in range (0, 8):
+                            if(j == (area % 8)):
+                                tmp += ' ' + '-' + ' '
+                            else:
+                                tmp += ' ' + ' ' + ' '
+                    ligne = ligne + tmp + '\n'
+                    tmp = ""
+            else:
+                if((i+1) % 8 == 0):
+                    ligne = ligne + reverse(tmp) + '\n'
+                    tmp = ""
+            if(i == cursor):
+                tmp = tmp +  '}'
+                tmp = tmp + '.'
+                tmp = tmp + '{'
+            elif(i == area):
+                tmp = tmp +  '|'
+                tmp = tmp + '.'
+                tmp = tmp + '|'
+            else:
+                tmp = tmp + ' '
+                tmp = tmp + '.'
+                tmp = tmp + ' '
     ligne = ligne + reverse(tmp) + '\n'
     tmp = ""
+    print(k)
     if(selected):
         if( area // 8 == (k // 8)):
                 for j in range (0, 8):
@@ -626,98 +665,196 @@ def printgame(b,cursor,selected,area):
                         tmp += ' ' + '-' + ' '
                     else:
                         tmp += ' ' + ' ' + ' '
-        ligne = ligne + tmp + '\n'
+        ligne = ligne + tmp 
         tmp = ""
     print(ligne)
+    print("------------------------")
     return
 
 global cursor
 global selected
 global area
+global board
+global print_info
 
-def init_game():
+def selectf():
+    running = True
+    select = 1
+    while(running):
+        os.system('clear')
+        print("Pour jouer aux échecs contre contre une IA, vous devez choissir quel doit être l'algorithme contre lequel vous allez vous battre")
+        print("Choisir entre :")
+        if(select == 1):
+            print("1) *- MaxMin")
+            print("2)  - AlphaBeta")
+        else:
+            print("1)  - MaxMin")
+            print("2) *- AlphaBeta")
+        tmp = input("Choisir 1 ou 2 :\n")
+        if(tmp == ''):
+            if(select == 1):
+                return init
+            else:
+                return initValue
+        if( tmp[0] == '1'):
+            print("ok1")
+            select = 1
+        if(tmp[0] == '2'):
+            print("ok2")
+            select = 2
+        
+
+def select_p():
+    running = True
+    while(running):
+        os.system('clear')
+        print("Pour jouer aux échecs contre contre une IA, vous devez choissir quel doit être la profondeur pour l'algorithme choisit")
+        tmp = input("Choisir un chiffre entre 1 et 4 :\n")
+        if( int(tmp) >= 1 and int(tmp) <= 4):
+            return int(tmp)
+
+def init_game(board):
+    f = selectf()
+    p = select_p()
     global selected
     global cursor
     global area 
-    area = 27
-    selected = True
+    global print_info
+    print_info = True
+    area = -1
+    selected = False
+    if(selected):
+        area = cursor
     cursor = 27
-    main()
+    main(f, p, board)
 
-def main():
-    board = chess.Board()
-    loop(board)
+def main(f, p, board):
+    loop(board, f, p)
     return
+def restart(board):
+    again_re = True
+    running = True
+    while(running):
+        os.system('clear')
+        if(board.result() == "1-0"):
+            print("Bravo ! Tu as gagnée !")
+        elif(board.result() == "0-1"):
+            print("C'est pas grave ! Tu y arriveras la prochaine fois !")
+        else:
+            print("Dommage ! C'était pas loin !")
+        print()
+        print("Voulez vous rejouer ?")
+        tmp = input("Choisir \"oui\" ou \"non\" :\n")
+        if tmp == "oui":
+            again_re = True
+            running = False
+        if tmp == "non":
+            again_re = False
+            running = False
+    if(again_re):
+        f = selectf()
+        p = select_p()
+        board.reset()
+        return f,p
+    return -1
+    
+def loop(board, f, p):
+    while(1):
+        os.system('clear')
+        global cursor
+        global selected
+        global area
+        global print_info
+        printgame(board, cursor, selected, area)
+        if(print_info):
+            printinfo()
+        string = input("Choose action :\n")
+        if len(string) > 0:
+            if(string[0] == 'z'):
+                if(selected):
+                    if((area // 8) == 7):
+                        area = area % 8
+                    else:
+                        area += 8   
+                else:
+                    if((cursor // 8) == 7):
+                        cursor = cursor % 8
+                    else:
+                        cursor += 8 
+                
+            if(string[0] == 'q'):
+                if(selected):
+                    if((area) % 8 == 0):
+                        area += 7
+                    else:
+                        area -= 1 
+                else: 
+                    if((cursor) % 8 == 0):
+                        cursor += 7
+                    else:
+                        cursor -= 1 
 
-def loop(board):
-    global cursor
-    global selected
-    global area
-    printgame(board, cursor, selected, area)
-    printinfo()
-    string = input("Choose action :\n")
-    if len(string) > 0:
-        if(string[0] == 'z'):
-            if(selected):
-                if((area // 8) == 7):
-                    area = area % 8
+            if(string[0] == 's'):
+                if(selected):
+                    if((area // 8) == 0):
+                        area = 56 + (area % 8)
+                    else:
+                        area -= 8 
+
                 else:
-                    area += 8   
-            else:
-                if((cursor // 8) == 7):
-                    cursor = cursor % 8
+                    if((cursor // 8) == 0):
+                        cursor = 56 + (cursor % 8)
+                    else:
+                        cursor -= 8 
+
+            if(string[0] == 'd'):
+                if(selected):
+                    if(area % 8 == 7):
+                        area -= 7
+                    else:
+                        area += 1 
+                else:    
+                    if(cursor % 8 == 7):
+                        cursor -= 7
+                    else:
+                        cursor += 1 
+            if(string[0] == 'r'):
+                if(selected):
+                    area = -1
+                    selected = not selected
+            if(string[0] == ' '):
+                if(selected):
+                    find = False
+                    for m in board.generate_legal_moves():
+                        cursor_pos = m.from_square
+                        dest_pos = m.to_square
+                        if cursor_pos == cursor and dest_pos == area:
+                            board.push(m)
+                            if(board.is_game_over()):
+                                
+                                tmp = restart(board)
+                                if(tmp == -1):
+                                    return
+                                else:
+                                    f = tmp[0]
+                                    p = tmp[1]
+                                    area = -1
+                                    selected = False
+                                break
+                            os.system('clear')
+                            printgame(board,cursor, selected, area)
+                            selected = not selected
+                            board.push(f(board, p, False))
+                            area = -1
+                    
                 else:
-                    cursor += 8 
+                    area = cursor
+                    selected = not selected
             
-        if(string[0] == 'q'):
-            if(selected):
-                if((area) % 8 == 0):
-                    area += 7
-                else:
-                    area -= 1 
-            else: 
-                if((cursor) % 8 == 0):
-                    cursor += 7
-                else:
-                    cursor -= 1 
-
-        if(string[0] == 's'):
-            if(selected):
-                if((area // 8) == 0):
-                    area = 56 + (area % 8)
-                else:
-                    area -= 8 
-
-            else:
-                if((cursor // 8) == 0):
-                    cursor = 56 + (cursor % 8)
-                else:
-                    cursor -= 8 
-
-        if(string[0] == 'd'):
-            if(selected):
-                if(area % 8 == 7):
-                    area -= 7
-                else:
-                    area += 1 
-            else:    
-                if(cursor % 8 == 7):
-                    cursor -= 7
-                else:
-                    cursor += 1 
-
-        if(string[0] == ' '):
-            print("selected : " + str(selected))
-            if(selected):
-                selected = not selected
-            else:
-                area = cursor
-                selected = not selected
-        
-        if(string[0] == 'e'):
-            return
-
-    loop(board)
+            if(string[0] == 'e'):
+                return
+            if(string[0] == 'i'):
+                print_info = not print_info
     return
 
 #------ Fin MinMax vs SimAlphaBetaulation Joueur VS Machine -------#
@@ -747,6 +884,6 @@ board = chess.Board()
 #print("Nb noeuds : " + str(noeuds) + "\n")
 #print("Resultat : " + board.result() + "\n")
 
-init_game()
+init_game(board)
 
 #------ Fin Main -------#
