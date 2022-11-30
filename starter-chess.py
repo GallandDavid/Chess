@@ -134,16 +134,110 @@ pst_king = {
   20, 30, 10, 0, 0, 10, 30, 20
 }
 
-def eval(board, player):
-    valeurs = {'K':20000, 
+#[#Withe K,Q,R,B,N,P, #Black k,q,r,b,n,p]
+#set the nb of each pieces
+#first pos is the total nb
+def count_pieces(board):
+    count_tab = [0,0,0,0,0,0,0,0,0,0,0,0,0]
+    for k,p in board.piece_map().items():
+        if p == 'P':
+            count_tab[0] += 1
+            count_tab[6] += 1
+        if p == 'N':
+            count_tab[0] += 1
+            count_tab[5] += 1
+        if p == 'B':
+            count_tab[0] += 1
+            count_tab[4] += 1
+        if p == 'R':
+            count_tab[0] += 1
+            count_tab[3] += 1
+        if p == 'K':
+            count_tab[0] += 1
+            count_tab[2] += 1
+        if p == 'Q':
+            count_tab[0] += 1
+            count_tab[1] += 1
+        if p == 'p':
+            count_tab[0] += 1
+            count_tab[12] += 1
+        if p == 'n':
+            count_tab[0] += 1
+            count_tab[11] += 1
+        if p == 'b':
+            count_tab[0] += 1
+            count_tab[10] += 1
+        if p == 'r':
+            count_tab[0] += 1
+            count_tab[9] += 1
+        if p == 'K':
+            count_tab[0] += 1
+            count_tab[8] += 1
+        if p == 'q':
+            count_tab[0] += 1
+            count_tab[7] += 1
+    return count_tab
+
+def psb_rook(board,k):
+    malus = 0
+    ratio = 2 / 24
+    if k//8 != 0:
+        if(piece_at(((k//8) - 1) + k%8) != None):
+            malus += valeur['R'] * ratio
+    else:
+        malus += valeur['R'] * ratio
+    
+    if k//8 != 7:
+        if(piece_at(((k//8) + 1) + k%8) != None):
+            malus += valeur['R'] * ratio
+    else:
+        malus += valeur['R'] * ratio
+    
+    if k%8 != 0:
+        if(piece_at(((k%8) - 1) + ((k//8) * 8)) != None):
+            malus += valeur['R'] * ratio
+    else:
+        malus += valeur['R'] * ratio
+    
+    if k%8 != 7:
+        if(piece_at(((k%8) + 1) + ((k//8) * 8)) != None):
+            malus += valeur['R'] * ratio
+    else:
+        malus += valeur['R'] * ratio
+    return malus
+
+valeurs = {'K':20000, 
                'Q':900, 
                'R':500, 
                'B':330, 
                'N':320, 
                'P':100,
                '.':0}
-    
+
+def eval(board, player, old_pieces):
     score = 0
+    new_withe = 0
+    new_black = 0
+    pieces = count_pieces(board)
+    print("piece[0] = " + str(pieces[0]) + "   old_pieces[0] = " + str(old_pieces[0]))
+    if(pieces[0] != old_pieces[0]):
+        for i in range(1,13,1):
+            if(pieces[i] != old_pieces[i]):
+                if(i%6 == 1):
+                    score -= valeur['K'] * 2
+                if(i%6 == 2):
+                    score -= valeur['Q'] * 2
+                if(i%6 == 3):
+                    score -= valeur['R'] * 2
+                if(i%6 == 4):
+                    score -= valeur['B'] * 2
+                if(i%6 == 5):
+                    score -= valeur['N'] * 2
+                if(i%6 == 0):
+                    score -= valeur['P'] * 2
+                if(i <= 6):
+                    score = -score
+                break
     for k,p in board.piece_map().items():
         if(p.symbol() == p.symbol().upper()):
             score += valeurs[p.symbol()]
@@ -155,25 +249,27 @@ def eval(board, player):
                 score += pst_bishop[i]
             if p == 'R':
                 score += pst_rook[i]
+                score -= psb_rook(board,k)
             if p == 'K':
                 score += pst_king[i]
             if p == 'Q':
                 score += pst_queen[i]
         else:
-            score += valeurs[p.symbol().upper()]
+            score -= valeurs[p.symbol().upper()]
             if p == 'p':
-                score += pst_pawn[i]
+                score -= pst_pawn[i]
             if p == 'n':
-                score += pst_knight[i]
+                score -= pst_knight[i]
             if p == 'b':
-                score += pst_bishop[i]
+                score -= pst_bishop[i]
             if p == 'r':
-                score += pst_rook[i]
+                score -= pst_rook[i]
+                score += psb_rook(board,k)
+            if p == 'K':
+                score -= pst_king[i]
             if p == 'q':
-                score += pst_queen[i]
-    if(player):
-        return score
-    return -score
+                score -= pst_queen[i]
+    return score
 
 
 #------ Fin Eval -------#
@@ -191,7 +287,7 @@ def MaxMin(b,p,player):
             return -100000
         return 0
     if p == 0:
-        return eval(b,player)
+        return eval(b,player,count_pieces(board))
     maxm = -1000000
     for m in b.generate_legal_moves():
         b.push(m)
@@ -211,7 +307,7 @@ def MinMax(b,p,player):
             return 100000
         return 0
     if p == 0:
-        return eval(b,player)
+        return eval(b,player,count_pieces(board))
     minm = 1000000
     for m in b.generate_legal_moves():
         b.push(m)
@@ -231,7 +327,7 @@ def init(b,p,player):
             return 100000
         return 0
     if p == 0:
-        return eval(b,player)
+        return eval(b,player,count_pieces(board))
     coup = 0
     global noeuds
     list_best_coup = []
@@ -338,7 +434,7 @@ def MaxValue(board, a, b, p, player):
             return -100000
         return 0
     if p == 0:
-        return eval(board, player)
+        return eval(board, player,count_pieces(board))
     for m in board.generate_legal_moves():
         board.push(m)
         global noeuds
@@ -360,7 +456,7 @@ def MinValue(board, a, b, p, player):
             return 100000
         return 0
     if p == 0:
-        return eval(board, player)
+        return eval(board, player,count_pieces(board))
     for m in board.generate_legal_moves():
         board.push(m)
         global noeuds 
