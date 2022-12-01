@@ -68,7 +68,7 @@ def maxProfondeur(b):
 
 
 #------ Eval -------#
-pst_pawn = {
+pst_pawn = [
   0, 0, 0, 0, 0, 0, 0, 0,
  50, 50, 50, 50, 50, 50, 50, 50,
  10, 10, 20, 30, 30, 20, 10, 10,
@@ -77,9 +77,9 @@ pst_pawn = {
   5, -5, -10, 0, 0, -10, -5, 5,
   5, 10, 10,-20,-20, 10, 10, 5,
   0, 0, 0, 0, 0, 0, 0, 0
-}
+]
 
-pst_knight = {
+pst_knight = [
   -50,-40,-30,-30,-30,-30,-40,-50,
  -40,-20, 0, 0, 0, 0,-20,-40,
  -30, 0, 10, 15, 15, 10, 0, -30,
@@ -88,9 +88,9 @@ pst_knight = {
  -30, 5, 10, 15, 15, 10, 5, -30,
  -40,-20, 0, 5, 5, 0,-20,-40,
  -50,-40,-30,-30,-30,-30,-40,-50
-}
+]
 
-pst_bishop = {
+pst_bishop = [
   -20,-10,-10,-10,-10,-10,-10,-20,
  -10, 0, 0, 0, 0, 0, 0,-10,
  -10, 0, 5, 10, 10, 5, 0, -10,
@@ -99,9 +99,9 @@ pst_bishop = {
  -10, 10, 10, 10, 10, 10, 10, -10,
  -10, 5, 0, 0, 0, 0, 5, -10,
  -20,-10,-10,-10,-10,-10,-10,-20,
-}
+]
 
-pst_rook = {
+pst_rook = [
   0, 0, 0, 0, 0, 0, 0, 0,
    5, 10, 10, 10, 10, 10, 10, 5,
   -5, 0, 0, 0, 0, 0, 0, -5,
@@ -110,9 +110,9 @@ pst_rook = {
   -5, 0, 0, 0, 0, 0, 0, -5,
   -5, 0, 0, 0, 0, 0, 0, -5,
    0, 0, 0, 5, 5, 0, 0, 0
-}
+]
 
-pst_queen = {
+pst_queen = [
  -20,-10,-10, -5, -5,-10,-10,-20,
  -10, 0, 0, 0, 0, 0, 0,-10,
  -10, 0, 5, 5, 5, 5, 0, -10,
@@ -121,9 +121,9 @@ pst_queen = {
  -10, 5, 5, 5, 5, 5, 0, -10,
  -10, 0, 5, 0, 0, 0, 0, -10,
  -20,-10,-10, -5, -5,-10,-10,-20
-}
+]
 
-pst_king = {
+pst_king = [
   -30,-40,-40,-50,-50,-40,-40,-30,
  -30,-40,-40,-50,-50,-40,-40,-30,
  -30,-40,-40,-50,-50,-40,-40,-30,
@@ -132,7 +132,7 @@ pst_king = {
  -10,-20,-20,-20,-20,-20,-20,-10,
   20, 20, 0, 0, 0, 0, 20, 20,
   20, 30, 10, 0, 0, 10, 30, 20
-}
+]
 
 #[#Withe K,Q,R,B,N,P, #Black k,q,r,b,n,p]
 #set the nb of each pieces
@@ -140,40 +140,40 @@ pst_king = {
 def count_pieces(board):
     count_tab = [0,0,0,0,0,0,0,0,0,0,0,0,0]
     for k,p in board.piece_map().items():
-        if p == 'P':
+        if p.symbol() == 'P':
             count_tab[0] += 1
             count_tab[6] += 1
-        if p == 'N':
+        if p.symbol() == 'N':
             count_tab[0] += 1
             count_tab[5] += 1
-        if p == 'B':
+        if p.symbol() == 'B':
             count_tab[0] += 1
             count_tab[4] += 1
-        if p == 'R':
+        if p.symbol() == 'R':
             count_tab[0] += 1
             count_tab[3] += 1
-        if p == 'K':
+        if p.symbol() == 'K':
             count_tab[0] += 1
             count_tab[2] += 1
-        if p == 'Q':
+        if p.symbol() == 'Q':
             count_tab[0] += 1
             count_tab[1] += 1
-        if p == 'p':
+        if p.symbol() == 'p':
             count_tab[0] += 1
             count_tab[12] += 1
-        if p == 'n':
+        if p.symbol() == 'n':
             count_tab[0] += 1
             count_tab[11] += 1
-        if p == 'b':
+        if p.symbol() == 'b':
             count_tab[0] += 1
             count_tab[10] += 1
-        if p == 'r':
+        if p.symbol() == 'r':
             count_tab[0] += 1
             count_tab[9] += 1
-        if p == 'K':
+        if p.symbol() == 'K':
             count_tab[0] += 1
             count_tab[8] += 1
-        if p == 'q':
+        if p.symbol() == 'q':
             count_tab[0] += 1
             count_tab[7] += 1
     return count_tab
@@ -182,28 +182,28 @@ def psb_rook(board,k):
     malus = 0
     ratio = 2 / 24
     if k//8 != 0:
-        if(piece_at(((k//8) - 1) + k%8) != None):
-            malus += valeur['R'] * ratio
+        if(board.piece_at(((k//8) - 1) + k%8) != None):
+            malus += valeurs['R'] * ratio
     else:
-        malus += valeur['R'] * ratio
+        malus += valeurs['R'] * ratio
     
     if k//8 != 7:
-        if(piece_at(((k//8) + 1) + k%8) != None):
-            malus += valeur['R'] * ratio
+        if(board.piece_at(((k//8) + 1) + k%8) != None):
+            malus += valeurs['R'] * ratio
     else:
-        malus += valeur['R'] * ratio
+        malus += valeurs['R'] * ratio
     
     if k%8 != 0:
-        if(piece_at(((k%8) - 1) + ((k//8) * 8)) != None):
-            malus += valeur['R'] * ratio
+        if(board.piece_at(((k%8) - 1) + ((k//8) * 8)) != None):
+            malus += valeurs['R'] * ratio
     else:
-        malus += valeur['R'] * ratio
+        malus += valeurs['R'] * ratio
     
     if k%8 != 7:
-        if(piece_at(((k%8) + 1) + ((k//8) * 8)) != None):
-            malus += valeur['R'] * ratio
+        if(board.piece_at(((k%8) + 1) + ((k//8) * 8)) != None):
+            malus += valeurs['R'] * ratio
     else:
-        malus += valeur['R'] * ratio
+        malus += valeurs['R'] * ratio
     return malus
 
 valeurs = {'K':20000, 
@@ -219,56 +219,57 @@ def eval(board, player, old_pieces):
     new_withe = 0
     new_black = 0
     pieces = count_pieces(board)
-    print("piece[0] = " + str(pieces[0]) + "   old_pieces[0] = " + str(old_pieces[0]))
+    #print("piece[0] = " + str(pieces[0]) + "   old_pieces[0] = " + str(old_pieces[0]))
     if(pieces[0] != old_pieces[0]):
+        ratio = 2
         for i in range(1,13,1):
             if(pieces[i] != old_pieces[i]):
                 if(i%6 == 1):
-                    score -= valeur['K'] * 2
+                    score -= valeur['K'] * ratio
                 if(i%6 == 2):
-                    score -= valeur['Q'] * 2
+                    score -= valeur['Q'] * ratio
                 if(i%6 == 3):
-                    score -= valeur['R'] * 2
+                    score -= valeur['R'] * ratio
                 if(i%6 == 4):
-                    score -= valeur['B'] * 2
+                    score -= valeur['B'] * ratio
                 if(i%6 == 5):
-                    score -= valeur['N'] * 2
+                    score -= valeur['N'] * ratio
                 if(i%6 == 0):
-                    score -= valeur['P'] * 2
+                    score -= valeur['P'] * ratio
                 if(i <= 6):
                     score = -score
                 break
     for k,p in board.piece_map().items():
         if(p.symbol() == p.symbol().upper()):
             score += valeurs[p.symbol()]
-            if p == 'P':
-                score += pst_pawn[i]
-            if p == 'N':
-                score += pst_knight[i]
-            if p == 'B':
-                score += pst_bishop[i]
-            if p == 'R':
-                score += pst_rook[i]
+            if p.symbol() == 'P':
+                score += pst_pawn[((7 - (k//8)) * 8) + (k%8)]
+            if p.symbol() == 'N':
+                score += pst_knight[((7 - (k//8)) * 8) + (k%8)]
+            if p.symbol() == 'B':
+                score += pst_bishop[((7 - (k//8)) * 8) + (k%8)]
+            if p.symbol() == 'R':
+                score += pst_rook[((7 - (k//8)) * 8) + (k%8)]
                 score -= psb_rook(board,k)
-            if p == 'K':
-                score += pst_king[i]
-            if p == 'Q':
-                score += pst_queen[i]
+            if p.symbol() == 'K':
+                score += pst_king[((7 - (k//8)) * 8) + (k%8)]
+            if p.symbol() == 'Q':
+                score += pst_queen[((7 - (k//8)) * 8) + (k%8)]
         else:
             score -= valeurs[p.symbol().upper()]
-            if p == 'p':
-                score -= pst_pawn[i]
-            if p == 'n':
-                score -= pst_knight[i]
-            if p == 'b':
-                score -= pst_bishop[i]
-            if p == 'r':
-                score -= pst_rook[i]
+            if p.symbol() == 'p':
+                score -= pst_pawn[((7 - (k//8)) * 8) + (k%8)]
+            if p.symbol() == 'n':
+                score -= pst_knight[((7 - (k//8)) * 8) + (k%8)]
+            if p.symbol() == 'b':
+                score -= pst_bishop[((7 - (k//8)) * 8) + (k%8)]
+            if p.symbol() == 'r':
+                score -= pst_rook[((7 - (k//8)) * 8) + (k%8)]
                 score += psb_rook(board,k)
-            if p == 'K':
-                score -= pst_king[i]
-            if p == 'q':
-                score -= pst_queen[i]
+            if p.symbol() == 'K':
+                score -= pst_king[((7 - (k//8)) * 8) + (k%8)]
+            if p.symbol() == 'q':
+                score -= pst_queen[((7 - (k//8)) * 8) + (k%8)]
     return score
 
 
@@ -971,15 +972,15 @@ board = chess.Board()
 #print( maxProfondeur(board))
 #deroulementExhaustif(board,2)
 #playGame(board,2,1,True)
-#roundMatch(board,10,3,2,True)
+roundMatch(board,10,2,1,True)
 #playAB(board, 1, 3, False)
-#playAB(board, 3, 1, True)
+#playAB(board, , 1, True)
 
 #duel(board,1,1,True,100)
 
 #print("Nb noeuds : " + str(noeuds) + "\n")
 #print("Resultat : " + board.result() + "\n")
 
-init_game(board)
+#init_game(board)
 
 #------ Fin Main -------#
