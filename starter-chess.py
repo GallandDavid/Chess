@@ -135,8 +135,8 @@ pst_king = [
 ]
 
 #[#Withe K,Q,R,B,N,P, #Black k,q,r,b,n,p]
-#set the nb of each pieces
-#first pos is the total nb
+#count the nb of each piece
+#first pos is the total of piece
 def count_pieces(board):
     count_tab = [0,0,0,0,0,0,0,0,0,0,0,0,0]
     for k,p in board.piece_map().items():
@@ -152,10 +152,10 @@ def count_pieces(board):
         if p.symbol() == 'R':
             count_tab[0] += 1
             count_tab[3] += 1
-        if p.symbol() == 'K':
+        if p.symbol() == 'Q':
             count_tab[0] += 1
             count_tab[2] += 1
-        if p.symbol() == 'Q':
+        if p.symbol() == 'K':
             count_tab[0] += 1
             count_tab[1] += 1
         if p.symbol() == 'p':
@@ -170,10 +170,10 @@ def count_pieces(board):
         if p.symbol() == 'r':
             count_tab[0] += 1
             count_tab[9] += 1
-        if p.symbol() == 'K':
+        if p.symbol() == 'q':
             count_tab[0] += 1
             count_tab[8] += 1
-        if p.symbol() == 'q':
+        if p.symbol() == 'k':
             count_tab[0] += 1
             count_tab[7] += 1
     return count_tab
@@ -219,23 +219,22 @@ def eval(board, player, old_pieces):
     new_withe = 0
     new_black = 0
     pieces = count_pieces(board)
-    #print("piece[0] = " + str(pieces[0]) + "   old_pieces[0] = " + str(old_pieces[0]))
-    if(pieces[0] != old_pieces[0]):
+    if(pieces[0] < old_pieces[0]):
         ratio = 2
         for i in range(1,13,1):
             if(pieces[i] != old_pieces[i]):
                 if(i%6 == 1):
-                    score -= valeur['K'] * ratio
+                    score -= valeurs['K'] * ratio
                 if(i%6 == 2):
-                    score -= valeur['Q'] * ratio
+                    score -= valeurs['Q'] * ratio
                 if(i%6 == 3):
-                    score -= valeur['R'] * ratio
+                    score -= valeurs['R'] * ratio
                 if(i%6 == 4):
-                    score -= valeur['B'] * ratio
+                    score -= valeurs['B'] * ratio
                 if(i%6 == 5):
-                    score -= valeur['N'] * ratio
+                    score -= valeurs['N'] * ratio
                 if(i%6 == 0):
-                    score -= valeur['P'] * ratio
+                    score -= valeurs['P'] * ratio
                 if(i <= 6):
                     score = -score
                 break
@@ -280,7 +279,7 @@ def eval(board, player, old_pieces):
 #------ MinMax methode -------#
 
 
-def MaxMin(b,p,player):
+def MaxMin(b,p,player,pieces):
     if b.is_game_over():
         if(b.result() == "1-0"):
             return 100000
@@ -288,19 +287,19 @@ def MaxMin(b,p,player):
             return -100000
         return 0
     if p == 0:
-        return eval(b,player,count_pieces(board))
+        return eval(b,player,pieces)
     maxm = -1000000
     for m in b.generate_legal_moves():
         b.push(m)
         global noeuds
         noeuds += 1
-        v = MinMax(b,p-1,player)
+        v = MinMax(b,p-1,player,pieces)
         if(v > maxm):
             maxm = v
         b.pop()
     return maxm
         
-def MinMax(b,p,player):
+def MinMax(b,p,player,pieces):
     if b.is_game_over():
         if(b.result() == "1-0"):
             return 100000
@@ -308,13 +307,13 @@ def MinMax(b,p,player):
             return -100000
         return 0
     if p == 0:
-        return eval(b,player,count_pieces(board))
+        return eval(b,player,pieces)
     minm = 1000000
     for m in b.generate_legal_moves():
         b.push(m)
         global noeuds
         noeuds += 1
-        v = MaxMin(b,p-1,player)
+        v = MaxMin(b,p-1,player,pieces)
         if(v < minm):
             minm = v
         b.pop()
@@ -326,12 +325,13 @@ def init(b,p,player):
         return coup
     global noeuds
     list_best_coup = []
+    pieces = count_pieces(board)
     if(player):
         value = -10000000
         for m in b.generate_legal_moves():
             b.push(m)
             noeuds += 1
-            v = MaxMin(b,p-1,player)
+            v = MaxMin(b,p-1,player,pieces)
             if(v > value):
                 list_best_coup = [m]
                 value = v
@@ -344,7 +344,7 @@ def init(b,p,player):
         for m in b.generate_legal_moves():
             b.push(m)
             noeuds += 1
-            v = MinMax(b,p-1,player)
+            v = MinMax(b,p-1,player,pieces)
             if(v < value):
                 list_best_coup = [m]
                 value = v
@@ -417,7 +417,7 @@ def roundMatch(b,rounde,p_a,p_e,player):
 #------ AlphaBeta methode -------#
 
 
-def MaxValue(board, a, b, p, player):
+def MaxValue(board, a, b, p, player,pieces):
     if board.is_game_over():
         if(board.result() == "1-0"):
             return 100000
@@ -425,12 +425,12 @@ def MaxValue(board, a, b, p, player):
             return -100000
         return 0
     if p == 0:
-        return eval(board, player,count_pieces(board))
+        return eval(board, player,pieces)
     for m in board.generate_legal_moves():
         board.push(m)
         global noeuds
         noeuds += 1
-        a = max(MinValue(board, a, b, p-1,not player), a)
+        a = max(MinValue(board, a, b, p-1,not player, pieces), a)
         if(a >= b):
             board.pop()
             return b
@@ -447,12 +447,12 @@ def MinValue(board, a, b, p, player):
             return -100000
         return 0
     if p == 0:
-        return eval(board, player,count_pieces(board))
+        return eval(board, player,pieces)
     for m in board.generate_legal_moves():
         board.push(m)
         global noeuds 
         noeuds += 1
-        b = min(MaxValue(board, a, b, p-1, not player), b)
+        b = min(MaxValue(board, a, b, p-1, not player, pieces), b)
         if(a >= b):
             board.pop()
             return a
@@ -467,18 +467,19 @@ def initValue(board, p, player):
         value = -1000000
     else:
         value = 1000000
+        pieces = count_pieces(board)
     for m in board.generate_legal_moves():
         board.push(m)
         global noeuds 
         noeuds += 1
         tmp = 0
         if(player):
-            tmp = MinValue(board, -1000000, 1000000, p-1, not player)
+            tmp = MinValue(board, -1000000, 1000000, p-1, not player, pieces)
             if(tmp >= value):
                 value = tmp
                 coup = m
         else:
-            tmp = MaxValue(board, -1000000, 1000000, p-1, not player)
+            tmp = MaxValue(board, -1000000, 1000000, p-1, not player, pieces)
             if(tmp >= value):
                 value = tmp
                 coup = m
@@ -953,7 +954,7 @@ board = chess.Board()
 #print( maxProfondeur(board))
 #deroulementExhaustif(board,2)
 #playGame(board,2,1,True)
-roundMatch(board,10,2,1,True)
+roundMatch(board,10,1,2,True)
 #playAB(board, 1, 3, False)
 #playAB(board, , 1, True)
 
