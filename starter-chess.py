@@ -34,26 +34,33 @@ def deroulementRandom(b):
 #------ Depth methode -------#
 
 global nb_noeuds
+nb_noeuds = 1
 noeuds = 1
     
-def deroulementExhaustif(b,p, nb_noeud):
-    
+#Déroule tous les jeux possibles pour un état du jeux jusqu'à une profondeur donnée "p"
+def deroulementExhaustif(b,p):
+    #print(b)
+    global nb_noeuds
     if b.is_game_over() or p == 0:
-        return nb_noeud
+        return
     for m in b.generate_legal_moves():
         b.push(m)
-        nb_noeud = deroulementExhaustif(b,p - 1, nb_noeud + 1)
+        nb_noeuds += 1
+        deroulementExhaustif(b,p - 1)
         b.pop()
-    return nb_noeud
+    return
 
+#Retourne la profondeur là plus loin pour un état du jeux qui met moins de 30s à s'éxécuter
 def maxProfondeur(b):
+    global nb_noeuds
     p_max = 0
     for p in range (0, 12):
         time_start = time.time()
-        nb_noeuds = deroulementExhaustif(b,p,0)
-        print_str = "for profondeur " + str(p) + " have " + str(nb_noeuds) + " noeuds"
+        deroulementExhaustif(b,p)
+        print_str = "Pour une profondeur p = " + str(p) + " il y a " + str(nb_noeuds) + " noeuds"
         print(print_str)
         time_after = time.time()
+        print("Temps écoulé : " + str(time_after - time_start))
         if(time_after - time_start > 30):
             p_max = p -1
             break
@@ -66,9 +73,10 @@ def maxProfondeur(b):
 
 
 
-
+#pst_x sont des tableaux de valeur 
 #------ Eval -------#
-pst_pawn = [
+
+pst_pawn_white = [
   0, 0, 0, 0, 0, 0, 0, 0,
  50, 50, 50, 50, 50, 50, 50, 50,
  10, 10, 20, 30, 30, 20, 10, 10,
@@ -79,7 +87,18 @@ pst_pawn = [
   0, 0, 0, 0, 0, 0, 0, 0
 ]
 
-pst_knight = [
+pst_pawn_black = [
+  0, 0, 0, 0, 0, 0, 0, 0,
+  -5, -10, -10,20,20, -10, -10, -5,
+  -5, 5, 10, 0, 0, 10, 5, -5,
+  0, 0, 0, -20, -20, 0, 0, 0,
+  -5, -5, -10, -25, -25, -10, -5, -5,
+ -10, -10, -20, -30, -30, -20, -10, -10,
+ -50, -50, -50, -50, -50, -50, -50, -50,
+  0, 0, 0, 0, 0, 0, 0, 0
+]
+
+pst_knight_white = [
   -50,-40,-30,-30,-30,-30,-40,-50,
  -40,-20, 0, 0, 0, 0,-20,-40,
  -30, 0, 10, 15, 15, 10, 0, -30,
@@ -90,7 +109,18 @@ pst_knight = [
  -50,-40,-30,-30,-30,-30,-40,-50
 ]
 
-pst_bishop = [
+pst_knight_black = [
+  50,40,30,30,30,30,40,50,
+ 40,20, 0, -5, -5, 0,20,40,
+ -30, -5, -10, -15, -15, -10, -5, 30,
+ 30, 0, -15, -20, -20, -15, 0, 30,
+ 30, -5, -15, -20, -20, -15, -5, 30,
+ 30, 0, -10, -15, -15, -10, 0, 30,
+ 40,20, 0, 0, 0, 0,20,40,
+ 50,40,30,30,30,30,40,50
+]
+
+pst_bishop_white = [
   -20,-10,-10,-10,-10,-10,-10,-20,
  -10, 0, 0, 0, 0, 0, 0,-10,
  -10, 0, 5, 10, 10, 5, 0, -10,
@@ -101,7 +131,18 @@ pst_bishop = [
  -20,-10,-10,-10,-10,-10,-10,-20,
 ]
 
-pst_rook = [
+pst_bishop_black = [
+  20,10,10,10,10,10,10,20,
+ 10, -5, 0, 0, 0, 0, -5, 10,
+ 10, -10, -10, -10, -10, -10, -10, 10,
+ 10, 0, -10, -10, -10, -10, 0, 10,
+ 10, -5, -5, -10, -10, -5, -5, 10,
+ 10, 0, -5, -10, -10, -5, 0, 10,
+ 10, 0, 0, 0, 0, 0, 0,10,
+ 20,10,10,10,10,10,10,20,
+]
+
+pst_rook_white = [
   0, 0, 0, 0, 0, 0, 0, 0,
    5, 10, 10, 10, 10, 10, 10, 5,
   -5, 0, 0, 0, 0, 0, 0, -5,
@@ -112,7 +153,18 @@ pst_rook = [
    0, 0, 0, 5, 5, 0, 0, 0
 ]
 
-pst_queen = [
+pst_rook_black = [
+  0, 0, 0, -5, -5, 0, 0, 0,
+   5, 0, 0, 0, 0, 0, 0, 5,
+  5, 0, 0, 0, 0, 0, 0, 5,
+  5, 0, 0, 0, 0, 0, 0, 5,
+  5, 0, 0, 0, 0, 0, 0, 5,
+  5, 0, 0, 0, 0, 0, 0, 5,
+  -5, -10, -10, -10, -10, -10, -10, -5,
+   0, 0, 0, 0, 0, 0, 0, 0
+]
+
+pst_queen_white = [
  -20,-10,-10, -5, -5,-10,-10,-20,
  -10, 0, 0, 0, 0, 0, 0,-10,
  -10, 0, 5, 5, 5, 5, 0, -10,
@@ -123,8 +175,19 @@ pst_queen = [
  -20,-10,-10, -5, -5,-10,-10,-20
 ]
 
-pst_king = [
-  -30,-40,-40,-50,-50,-40,-40,-30,
+pst_queen_black = [
+ 20,10,10, 5, 5,10,10,20,
+ 10, 0, -5, -0, -0, 0, -0,10,
+ 10, -5, -5, -5, -5, -5, -0, -10,
+ 0, -0, -5, -5, -5, -5, -0, 5,
+ 5, -0, -5, -5, -5, -5, -0, 5,
+ 10, -5, -5, -5, -5, -5, -0, 10,
+ 10, -0, -5, -0, -0, -0, -0, 10,
+ 20,10,10, 5, 5,10,10,20
+]
+
+pst_king_white = [
+ -30,-40,-40,-50,-50,-40,-40,-30,
  -30,-40,-40,-50,-50,-40,-40,-30,
  -30,-40,-40,-50,-50,-40,-40,-30,
  -30,-40,-40,-50,-50,-40,-40,-30,
@@ -134,9 +197,21 @@ pst_king = [
   20, 30, 10, 0, 0, 10, 30, 20
 ]
 
-#[#Withe K,Q,R,B,N,P, #Black k,q,r,b,n,p]
-#count the nb of each piece
-#first pos is the total of piece
+pst_king_black = [
+  -20,-30,-10,-0,-0,-10,-30,-20,
+ -20,-20,-0,-0,-0,-0,-20,-20,
+ 10,20,20,20,20,20,20,10,
+ 20,30,30,40,40,30,30,20,
+ 30,40,40,50,50,40,40,30,
+ 30,40,40,50,50,40,40,30,
+  30,40,40,50,50,40,40,30,
+  30,40,40,50,50,40,40,30,
+]
+
+
+#[#Blanc K,Q,R,B,N,P, #Noire k,q,r,b,n,p]
+#compte le nombre de pièces pour chacune
+#première position du tableau est le nombre total de pièce
 def count_pieces(board):
     count_tab = [0,0,0,0,0,0,0,0,0,0,0,0,0]
     for k,p in board.piece_map().items():
@@ -206,18 +281,16 @@ def psb_rook(board,k):
         malus += valeurs['R'] * ratio
     return malus
 
-valeurs = {'K':20000, 
-               'Q':900, 
-               'R':500, 
-               'B':330, 
-               'N':320, 
-               'P':100,
+valeurs = {'K':200, 
+               'Q':9, 
+               'R':5, 
+               'B':3, 
+               'N':3, 
+               'P':1,
                '.':0}
 
 def eval(board, player, old_pieces):
     score = 0
-    new_withe = 0
-    new_black = 0
     pieces = count_pieces(board)
     if(pieces[0] < old_pieces[0]):
         ratio = 2
@@ -242,33 +315,33 @@ def eval(board, player, old_pieces):
         if(p.symbol() == p.symbol().upper()):
             score += valeurs[p.symbol()]
             if p.symbol() == 'P':
-                score += pst_pawn[((7 - (k//8)) * 8) + (k%8)]
+                score += pst_pawn_white[((7 - (k//8)) * 8) + (k%8)]
             if p.symbol() == 'N':
-                score += pst_knight[((7 - (k//8)) * 8) + (k%8)]
+                score += pst_knight_white[((7 - (k//8)) * 8) + (k%8)]
             if p.symbol() == 'B':
-                score += pst_bishop[((7 - (k//8)) * 8) + (k%8)]
+                score += pst_bishop_white[((7 - (k//8)) * 8) + (k%8)]
             if p.symbol() == 'R':
-                score += pst_rook[((7 - (k//8)) * 8) + (k%8)]
+                score += pst_rook_white[((7 - (k//8)) * 8) + (k%8)]
                 #score -= psb_rook(board,k)
             if p.symbol() == 'K':
-                score += pst_king[((7 - (k//8)) * 8) + (k%8)]
+                score += pst_king_white[((7 - (k//8)) * 8) + (k%8)]
             if p.symbol() == 'Q':
-                score += pst_queen[((7 - (k//8)) * 8) + (k%8)]
+                score += pst_queen_white[((7 - (k//8)) * 8) + (k%8)]
         else:
             score -= valeurs[p.symbol().upper()]
             if p.symbol() == 'p':
-                score -= pst_pawn[((7 - (k//8)) * 8) + (k%8)]
+                score -= pst_pawn_black[((7 - (k//8)) * 8) + (k%8)]
             if p.symbol() == 'n':
-                score -= pst_knight[((7 - (k//8)) * 8) + (k%8)]
+                score -= pst_knight_black[((7 - (k//8)) * 8) + (k%8)]
             if p.symbol() == 'b':
-                score -= pst_bishop[((7 - (k//8)) * 8) + (k%8)]
+                score -= pst_bishop_black[((7 - (k//8)) * 8) + (k%8)]
             if p.symbol() == 'r':
-                score -= pst_rook[((7 - (k//8)) * 8) + (k%8)]
+                score -= pst_rook_black[((7 - (k//8)) * 8) + (k%8)]
                 #score += psb_rook(board,k)
             if p.symbol() == 'k':
-                score -= pst_king[((7 - (k//8)) * 8) + (k%8)]
+                score += pst_king_black[((7 - (k//8)) * 8) + (k%8)]
             if p.symbol() == 'q':
-                score -= pst_queen[((7 - (k//8)) * 8) + (k%8)]
+                score -= pst_queen_black[((7 - (k//8)) * 8) + (k%8)]
     return score
 
 
@@ -279,7 +352,7 @@ def eval(board, player, old_pieces):
 #------ MinMax methode -------#
 
 
-def MaxMin(b,p,player,pieces):
+def MaxMin(b,p,player,old_pieces):
     if b.is_game_over():
         if(b.result() == "1-0"):
             return 100000
@@ -287,19 +360,20 @@ def MaxMin(b,p,player,pieces):
             return -100000
         return 0
     if p == 0:
-        return eval(b,player,pieces)
+        return eval(b,player,old_pieces)
     maxm = -1000000
+    pieces = count_pieces(board)
     for m in b.generate_legal_moves():
         b.push(m)
         global noeuds
         noeuds += 1
-        v = MinMax(b,p-1,player,pieces)
+        v = MinMax(b,p-1,not player,pieces)
         if(v > maxm):
             maxm = v
         b.pop()
     return maxm
         
-def MinMax(b,p,player,pieces):
+def MinMax(b,p,player,old_pieces):
     if b.is_game_over():
         if(b.result() == "1-0"):
             return 100000
@@ -307,13 +381,14 @@ def MinMax(b,p,player,pieces):
             return -100000
         return 0
     if p == 0:
-        return eval(b,player,pieces)
+        return eval(b,player,old_pieces)
     minm = 1000000
+    pieces = count_pieces(board)
     for m in b.generate_legal_moves():
         b.push(m)
         global noeuds
         noeuds += 1
-        v = MaxMin(b,p-1,player,pieces)
+        v = MaxMin(b,p-1,not player,pieces)
         if(v < minm):
             minm = v
         b.pop()
@@ -356,29 +431,31 @@ def init(b,p,player):
         return list_best_coup[random.randint(0, len(list_best_coup) - 1)]
     return coup   
 
-def playGame(b,p_a,p_e,player):
+def playGame(b,p_a,p_e):
     #print("----------")
     #print(b)
-    if(player):
-        b.push(init(b,p_a,player))
-    else:
-        b.push(init(b,p_e,player))
-    if b.is_game_over():
-        return b
-    playGame(b,p_a,p_e,not player)
-    return
+    player = True
+    while(1):
+        if(player):
+            b.push(init(b,p_a,player))
+        else:
+            b.push(init(b,p_e,player))
+        if b.is_game_over():
+            return b
+        player = not player
 
-def roundMatch(b,rounde,p_a,p_e,player):
+def roundMatch(b,rounde,p_a,p_e):
     times = []
     score = [0,0]
     noeud = []
     global noeuds
     r = rounde
+    player = True
     while(r >= 0):
         noeuds = 1
         b.reset()
         time_start = time.time()
-        playGame(b,p_a,p_e,player)
+        playGame(b,p_a,p_e)
         time_end = time.time()
         print("time : " + str(time_end - time_start))
         times.append(time_end - time_start)
@@ -403,7 +480,8 @@ def roundMatch(b,rounde,p_a,p_e,player):
     node = node / len(noeud)
     print("temps moyen : " + str(temps))
     print("nombre de noeuds moyen : " + str(node))
-    print("pourcentage de chance de victoire : " + str(score[0] / (rounde + 1) *100))
+    print("pourcentage de chance de victoire joueur Blanc : " + str(score[0] / (rounde + 1) *100))
+    print("pourcentage de chance de victoire joueur Noir : " + str(score[1] / (rounde + 1) *100))
 
 
 
@@ -439,7 +517,7 @@ def MaxValue(board, a, b, p, player,pieces):
 
 
 
-def MinValue(board, a, b, p, player):
+def MinValue(board, a, b, p, player,pieces):
     if board.is_game_over():
         if(board.result() == "1-0"):
             return 100000
@@ -461,6 +539,7 @@ def MinValue(board, a, b, p, player):
 
 def initValue(board, p, player):
     coup = randomMove(board)
+    list_best_coup = []
     if p == 0:
         return coup
     if(player):
@@ -476,31 +555,40 @@ def initValue(board, p, player):
         if(player):
             tmp = MinValue(board, -1000000, 1000000, p-1, not player, pieces)
             if(tmp >= value):
+                list_best_coup = [m]
                 value = tmp
                 coup = m
+            elif(v == value):
+                list_best_coup.append(m)
         else:
             tmp = MaxValue(board, -1000000, 1000000, p-1, not player, pieces)
             if(tmp >= value):
+                list_best_coup = [m]
                 value = tmp
                 coup = m
+            elif(tmp == value):
+                list_best_coup.append(m)
         board.pop()
+    if(len(list_best_coup) > 1):
+        return list_best_coup[random.randint(0, len(list_best_coup) - 1)]
     return coup
 
 
-def playAB(b, p_a, p_e, player):
+def playAB(b, p_a, p_e):
     #print("----------")
     #print(b)
-    if(player):
-        b.push(initValue(b,p_a,player))
-    else:
-        b.push(initValue(b,p_e,player))
-    if b.is_game_over():
-        return b
-    playAB(b, p_a, p_e, not player)
-    return
+    player = True
+    while(1):
+        if(player):
+            b.push(initValue(b,p_a,player))
+        else:
+            b.push(initValue(b,p_e,player))
+        if b.is_game_over():
+            return 
+        player = not player
 
 
-def makeRound(b,p_a,p_e,player):
+def makeRound(b,rounde,p_a,p_e):
     times = []
     score = [0,0]
     noeud = []
@@ -510,7 +598,7 @@ def makeRound(b,p_a,p_e,player):
         noeuds = 1
         b.reset()
         time_start = time.time()
-        playAB(b,p_a,p_e,player)
+        playAB(b,p_a,p_e)
         time_end = time.time()
         print("time : " + str(time_end - time_start))
         times.append(time_end - time_start)
@@ -535,7 +623,8 @@ def makeRound(b,p_a,p_e,player):
     node = node / len(noeud)
     print("temps moyen : " + str(temps))
     print("nombre de noeuds moyen : " + str(node))
-    print("pourcentage de chance de victoire : " + str(score[0] / (rounde + 1) *100))
+    print("pourcentage de chance de victoire joeur Blanc: " + str(score[0] / (rounde + 1) *100))
+    print("pourcentage de chance de victoire joeur Noire: " + str(score[1] / (rounde + 1) *100))
 
 
 
@@ -547,22 +636,20 @@ def makeRound(b,p_a,p_e,player):
 #------ MinMax vs AlphaBeta -------#
 
 
-def playDuel(b,p_a,p_e,player):
-    #print("----------")
-    #print(b)
-    if(player):
-        b.push(init(b,p_a,player))
-    else:
-        b.push(initValue(b,p_e,player))
-    if b.is_game_over():
-        return b
-    if(player):
-        player = False
-    else:
-        player = True
-    playDuel(b, p_a, p_e, player)
+def playDuel(b,p_a,p_e):
+    player = True
+    while(1):
+        print("----------")
+        print(b)
+        if(player):
+            b.push(init(b,p_a,player))
+        else:
+            b.push(initValue(b,p_e,player))
+        if b.is_game_over():
+            return b
+        player = not player
 
-def duel(b,p_a,p_e,player,rounde):
+def duel(b,rounde,p_a,p_e):
     times = []
     score = [0,0]
     noeud = []
@@ -572,7 +659,7 @@ def duel(b,p_a,p_e,player,rounde):
         noeuds = 1
         b.reset()
         time_start = time.time()
-        playDuel(b,p_a,p_e,player)
+        playDuel(b,p_a,p_e)
         time_end = time.time()
         print("time : " + str(time_end - time_start))
         times.append(time_end - time_start)
@@ -587,7 +674,6 @@ def duel(b,p_a,p_e,player,rounde):
         noeud.append(noeuds)
         print("Nb noeuds : " + str(noeuds))
         r -= 1
-        player = not player
     temps = 0
     node = 0
     for time_e in times:
@@ -936,33 +1022,83 @@ def loop(board, f, p):
                 print_info = not print_info
     return
 
-#------ Fin MinMax vs SimAlphaBetaulation Joueur VS Machine -------#
+#------ Fin Simulation Joueur VS Machine -------#
 
 
 
-#------ Main -------#
-
-
+#------ TEST -------#
 
 board = chess.Board()
-#print(board)
-#board.push(randomMove(board))
-#for k,p in board.piece_map().items():
-#    print(k)
-#print(board)
+
+#------ Jeux aléatoire -------#
+
 #deroulementRandom(board)
-#print( maxProfondeur(board))
+
+#------ Fin Jeux aléatoire -------#
+
+
+#------ Recherche exhaustif -------#
+
+#nb_noeuds = 1
 #deroulementExhaustif(board,2)
-#playGame(board,2,1,True)
-roundMatch(board,10,1,2,True)
-#playAB(board, 1, 3, False)
-#playAB(board, , 1, True)
+#print(nb_noeuds)
+#nb_noeuds = 1
+#print("La profondeur la plus profonde qui met moins de 30s est : " + str(maxProfondeur(board)))
 
-#duel(board,1,1,True,100)
+#------ Fin Recherche exhaustif -------#
 
-#print("Nb noeuds : " + str(noeuds) + "\n")
-#print("Resultat : " + board.result() + "\n")
+
+#------ MinMax  -------#
+#2eme parametre : nombre de partie
+#3eme parametre : profondeur Blanc
+#4eme parametre : profondeur Noir
+
+#roundMatch(board,10,1,1)
+#roundMatch(board,10,2,1)
+#roundMatch(board,10,3,1)
+#roundMatch(board,10,3,3)
+#roundMatch(board,10,2,2)
+#roundMatch(board,10,1,3)
+#roundMatch(board,10,1,2)
+
+#------ Fin MinMax  -------#
+
+
+#------ AlphaBeta  -------#
+
+#2eme parametre : nombre de partie
+#3eme parametre : profondeur Blanc
+#4eme parametre : profondeur Noir
+
+#makeRound(board,10,1,1)
+#makeRound(board,10,2,1)
+#makeRound(board,10,3,1)
+#makeRound(board,10,3,3)
+#makeRound(board,10,2,2)
+#makeRound(board,10,1,3)
+#makeRound(board,10,1,2)
+
+#------ Fin AlphaBeta  -------#
+
+
+#------ MinMax Vs AlphaBeta  -------#
+
+#duel(board,10,1,1)
+#duel(board,10,2,1)
+#duel(board,10,3,1)
+#duel(board,10,3,3)
+duel(board,10,2,2)
+#duel(board,10,1,3)
+#duel(board,10,1,2)
+
+#------ Fin MinMax Vs AlphaBeta  -------#
+
+
+#------ Joueur Vs IA -------#
 
 #init_game(board)
+
+#------ Fin Joueur Vs IA -------#
+
 
 #------ Fin Main -------#
