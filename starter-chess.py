@@ -265,7 +265,7 @@ def eval(board, player, old_pieces):
             if p.symbol() == 'r':
                 score -= pst_rook[((7 - (k//8)) * 8) + (k%8)]
                 #score += psb_rook(board,k)
-            if p.symbol() == 'K':
+            if p.symbol() == 'k':
                 score -= pst_king[((7 - (k//8)) * 8) + (k%8)]
             if p.symbol() == 'q':
                 score -= pst_queen[((7 - (k//8)) * 8) + (k%8)]
