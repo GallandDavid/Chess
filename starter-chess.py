@@ -250,7 +250,7 @@ def eval(board, player, old_pieces):
                 score += pst_bishop[((7 - (k//8)) * 8) + (k%8)]
             if p.symbol() == 'R':
                 score += pst_rook[((7 - (k//8)) * 8) + (k%8)]
-                score -= psb_rook(board,k)
+                #score -= psb_rook(board,k)
             if p.symbol() == 'K':
                 score += pst_king[((7 - (k//8)) * 8) + (k%8)]
             if p.symbol() == 'Q':
@@ -265,7 +265,7 @@ def eval(board, player, old_pieces):
                 score -= pst_bishop[((7 - (k//8)) * 8) + (k%8)]
             if p.symbol() == 'r':
                 score -= pst_rook[((7 - (k//8)) * 8) + (k%8)]
-                score += psb_rook(board,k)
+                #score += psb_rook(board,k)
             if p.symbol() == 'K':
                 score -= pst_king[((7 - (k//8)) * 8) + (k%8)]
             if p.symbol() == 'q':
