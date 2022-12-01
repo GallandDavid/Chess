@@ -303,9 +303,9 @@ def MaxMin(b,p,player):
 def MinMax(b,p,player):
     if b.is_game_over():
         if(b.result() == "1-0"):
-            return -100000
-        elif(b.result() == "0-1"):
             return 100000
+        elif(b.result() == "0-1"):
+            return -100000
         return 0
     if p == 0:
         return eval(b,player,count_pieces(board))
@@ -321,20 +321,13 @@ def MinMax(b,p,player):
     return minm
 
 def init(b,p,player):
-    if b.is_game_over():
-        if(b.result() == "1-0"):
-            return -100000
-        elif(b.result() == "0-1"):
-            return 100000
-        return 0
+    coup = randomMove(board)
     if p == 0:
-        return eval(b,player,count_pieces(board))
-    coup = 0
+        return coup
     global noeuds
     list_best_coup = []
     if(player):
         value = -10000000
-
         for m in b.generate_legal_moves():
             b.push(m)
             noeuds += 1
@@ -372,11 +365,8 @@ def playGame(b,p_a,p_e,player):
         b.push(init(b,p_e,player))
     if b.is_game_over():
         return b
-    if(player):
-        player = False
-    else:
-        player = True
-    playGame(b,p_a,p_e,player)
+    playGame(b,p_a,p_e,not player)
+    return
 
 def roundMatch(b,rounde,p_a,p_e,player):
     times = []
@@ -452,9 +442,9 @@ def MaxValue(board, a, b, p, player):
 def MinValue(board, a, b, p, player):
     if board.is_game_over():
         if(board.result() == "1-0"):
-            return -100000
-        elif(board.result() == "0-1"):
             return 100000
+        elif(board.result() == "0-1"):
+            return -100000
         return 0
     if p == 0:
         return eval(board, player,count_pieces(board))
@@ -471,12 +461,6 @@ def MinValue(board, a, b, p, player):
 
 def initValue(board, p, player):
     coup = randomMove(board)
-    if board.is_game_over():
-        if(board.result() == "1-0"):
-            return -100000
-        elif(board.result() == "0-1"):
-            return 100000
-        return 0
     if p == 0:
         return coup
     if(player):
@@ -511,11 +495,8 @@ def playAB(b, p_a, p_e, player):
         b.push(initValue(b,p_e,player))
     if b.is_game_over():
         return b
-    if(player):
-        player = False
-    else:
-        player = True
-    playAB(b, p_a, p_e, player)
+    playAB(b, p_a, p_e, not player)
+    return
 
 
 def makeRound(b,p_a,p_e,player):
