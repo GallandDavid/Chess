@@ -253,6 +253,8 @@ def count_pieces(board):
             count_tab[7] += 1
     return count_tab
 
+#fonction servant à donner un malus aux tour possédent des axes bloqué directement par une pièce allié
+#non mis en oeuvre dans l'évaluation car le rajoue de condition similaire pour chaque pièce aurais pris trop de temps
 def psb_rook(board,k):
     malus = 0
     ratio = 2 / 24
@@ -281,6 +283,7 @@ def psb_rook(board,k):
         malus += valeurs['R'] * ratio
     return malus
 
+#valeur de chaque pièces
 valeurs = {'K':200, 
                'Q':9, 
                'R':5, 
@@ -289,6 +292,11 @@ valeurs = {'K':200,
                'P':1,
                '.':0}
 
+
+#fonction renvoyant le score d'évaluation pour un état du plateau.
+#Rajout d'un bonus en cas de pièces mangait ou malus si la pièce est dans son camps
+#rajou d'un bonus de positionnement adapté à chaque pièce en fonction de sa couleur
+#old_pieces contage des pièces présentent avant dernier coup tous juste jouer
 def eval(board, player, old_pieces):
     score = 0
     pieces = count_pieces(board)
@@ -330,18 +338,18 @@ def eval(board, player, old_pieces):
         else:
             score -= valeurs[p.symbol().upper()]
             if p.symbol() == 'p':
-                score -= pst_pawn_black[((7 - (k//8)) * 8) + (k%8)]
+                score += pst_pawn_black[((7 - (k//8)) * 8) + (k%8)]
             if p.symbol() == 'n':
-                score -= pst_knight_black[((7 - (k//8)) * 8) + (k%8)]
+                score += pst_knight_black[((7 - (k//8)) * 8) + (k%8)]
             if p.symbol() == 'b':
-                score -= pst_bishop_black[((7 - (k//8)) * 8) + (k%8)]
+                score += pst_bishop_black[((7 - (k//8)) * 8) + (k%8)]
             if p.symbol() == 'r':
-                score -= pst_rook_black[((7 - (k//8)) * 8) + (k%8)]
+                score += pst_rook_black[((7 - (k//8)) * 8) + (k%8)]
                 #score += psb_rook(board,k)
             if p.symbol() == 'k':
                 score += pst_king_black[((7 - (k//8)) * 8) + (k%8)]
             if p.symbol() == 'q':
-                score -= pst_queen_black[((7 - (k//8)) * 8) + (k%8)]
+                score += pst_queen_black[((7 - (k//8)) * 8) + (k%8)]
     return score
 
 
@@ -351,7 +359,8 @@ def eval(board, player, old_pieces):
 
 #------ MinMax methode -------#
 
-
+#old_pieces contage des pièces présentent avant dernier coup tous juste jouer
+#p profondeur 
 def MaxMin(b,p,player,old_pieces):
     if b.is_game_over():
         if(b.result() == "1-0"):
@@ -373,6 +382,10 @@ def MaxMin(b,p,player,old_pieces):
         b.pop()
     return maxm
         
+
+
+#old_pieces contage des pièces présentent avant dernier coup tous juste jouer
+#p profondeur  
 def MinMax(b,p,player,old_pieces):
     if b.is_game_over():
         if(b.result() == "1-0"):
@@ -394,6 +407,10 @@ def MinMax(b,p,player,old_pieces):
         b.pop()
     return minm
 
+
+#Fonction servant d'initialisation à MinMax
+#Elle permet de renvoyer un coup à partir des valeurs d'heuristique remonté par MaxMin et MinMax
+#p profondeur 
 def init(b,p,player):
     coup = randomMove(board)
     if p == 0:
@@ -431,6 +448,9 @@ def init(b,p,player):
         return list_best_coup[random.randint(0, len(list_best_coup) - 1)]
     return coup   
 
+#Simule un tournois entre 2 MinMax
+#p_a profondeur minmax Blanc
+#p_e profondeur minmax Noir
 def playGame(b,p_a,p_e):
     #print("----------")
     #print(b)
@@ -444,6 +464,11 @@ def playGame(b,p_a,p_e):
             return b
         player = not player
 
+
+#Simule un tournois entre 2 MinMax
+#rounde est le nombre de partie
+#p_a profondeur minmax Blanc
+#p_e profondeur minmax Noir
 def roundMatch(b,rounde,p_a,p_e):
     times = []
     score = [0,0]
@@ -495,7 +520,11 @@ def roundMatch(b,rounde,p_a,p_e):
 #------ AlphaBeta methode -------#
 
 
-def MaxValue(board, a, b, p, player,pieces):
+#a valeur alpha
+#b valeur beta
+#old_pieces contage des pièces présentent avant dernier coup tous juste jouer
+#p profondeur  
+def MaxValue(board, a, b, p, player,old_pieces):
     if board.is_game_over():
         if(board.result() == "1-0"):
             return 100000
@@ -503,7 +532,8 @@ def MaxValue(board, a, b, p, player,pieces):
             return -100000
         return 0
     if p == 0:
-        return eval(board, player,pieces)
+        return eval(board, player,old_pieces)
+    pieces = count_pieces(board)
     for m in board.generate_legal_moves():
         board.push(m)
         global noeuds
@@ -517,7 +547,11 @@ def MaxValue(board, a, b, p, player,pieces):
 
 
 
-def MinValue(board, a, b, p, player,pieces):
+#a valeur alpha
+#b valeur beta
+#old_pieces contage des pièces présentent avant dernier coup tous juste jouer
+#p profondeur  
+def MinValue(board, a, b, p, player,old_pieces):
     if board.is_game_over():
         if(board.result() == "1-0"):
             return 100000
@@ -525,7 +559,8 @@ def MinValue(board, a, b, p, player,pieces):
             return -100000
         return 0
     if p == 0:
-        return eval(board, player,pieces)
+        return eval(board, player,old_pieces)
+    pieces = count_pieces(board)
     for m in board.generate_legal_moves():
         board.push(m)
         global noeuds 
@@ -537,6 +572,10 @@ def MinValue(board, a, b, p, player,pieces):
         board.pop()
     return b
 
+
+#Fonction servant d'initialisation à AlphaBeta
+#Elle permet de renvoyer un coup à partir des valeurs d'heuristique remonté par MaxValue et MinValue
+#p profondeur 
 def initValue(board, p, player):
     coup = randomMove(board)
     list_best_coup = []
@@ -573,7 +612,9 @@ def initValue(board, p, player):
         return list_best_coup[random.randint(0, len(list_best_coup) - 1)]
     return coup
 
-
+#Simule un match entre 2 AlphaBeta
+#p_a profondeur alphabeta Blanc
+#p_e profondeur alphabeta Noir
 def playAB(b, p_a, p_e):
     #print("----------")
     #print(b)
@@ -587,7 +628,10 @@ def playAB(b, p_a, p_e):
             return 
         player = not player
 
-
+#Simule un tournois entre 2 AlphaBeta
+#rounde est le nombre de partie
+#p_a profondeur alphabeta Blanc
+#p_e profondeur alphabeta Noir
 def makeRound(b,rounde,p_a,p_e):
     times = []
     score = [0,0]
@@ -635,12 +679,14 @@ def makeRound(b,rounde,p_a,p_e):
 
 #------ MinMax vs AlphaBeta -------#
 
-
+#Simule un match entre les 2 IA
+#p_a profondeur minmax
+#p_e profondeur alphabeta
 def playDuel(b,p_a,p_e):
     player = True
     while(1):
-        print("----------")
-        print(b)
+        #print("----------")
+        #print(b)
         if(player):
             b.push(init(b,p_a,player))
         else:
@@ -649,6 +695,10 @@ def playDuel(b,p_a,p_e):
             return b
         player = not player
 
+#fonction simulant une certain nombre de partie entre MinMax(Blanc) et AlphaBeta(Noir)
+#rounde est le nombre de partie
+#p_a profondeur minmax
+#p_e profondeur alphabeta
 def duel(b,rounde,p_a,p_e):
     times = []
     score = [0,0]
@@ -693,6 +743,7 @@ def duel(b,rounde,p_a,p_e):
 
 #------ Simulation Joueur VS Machine -------#
 
+#Les information afficher pour aider à jouer
 def printinfo():
     print("Règles d'utilisation :")
     print(" -\"i\" pour afficher / ne plus afficher les règles d'utilisation")
@@ -708,6 +759,7 @@ def reverse(s):
         str = i + str
     return str
 
+#Affiche le jeux avec un curseur de selection de pieces et un curseur de selection de position pour le coup de la pieces
 def printgame(board,cursor,selected,area):
     print("------------------------")
     ligne = ""
@@ -842,6 +894,8 @@ global area
 global board
 global print_info
 
+
+#Permet via une inteface textuel de selectionner l'IA contre qui jouer
 def selectf():
     running = True
     select = 1
@@ -868,7 +922,7 @@ def selectf():
             print("ok2")
             select = 2
         
-
+#Permet via une inteface textuel de selectionner la profondeur de l'IA sélectionné
 def select_p():
     running = True
     while(running):
@@ -878,6 +932,7 @@ def select_p():
         if( int(tmp) >= 1 and int(tmp) <= 4):
             return int(tmp)
 
+#Initialise les parametres necessaire à la jouabilité humain contre machine
 def init_game(board):
     f = selectf()
     p = select_p()
@@ -891,11 +946,8 @@ def init_game(board):
     if(selected):
         area = cursor
     cursor = 27
-    main(f, p, board)
-
-def main(f, p, board):
     loop(board, f, p)
-    return
+
 def restart(board):
     again_re = True
     running = True
@@ -922,7 +974,10 @@ def restart(board):
         board.reset()
         return f,p
     return -1
-    
+
+
+#Simule une partie d'échecs entre un joueur et une ia choisit
+#Comprends aussi la possibilité de jouer
 def loop(board, f, p):
     while(1):
         os.system('clear')
@@ -1087,8 +1142,8 @@ board = chess.Board()
 #duel(board,10,2,1)
 #duel(board,10,3,1)
 #duel(board,10,3,3)
-duel(board,10,2,2)
-#duel(board,10,1,3)
+#duel(board,10,2,2)
+duel(board,10,1,3)
 #duel(board,10,1,2)
 
 #------ Fin MinMax Vs AlphaBeta  -------#
